@@ -1,0 +1,6 @@
+Flask==2.2.3
+Werkzeug==2.2.3
+gunicorn==20.1.0
+Flask-WTF==1.0.0     # Für HTML-Formulare
+office365-rest-python-client==2.3.12  # Für die SharePoint-Integration
+extract-msg==0.28.7
