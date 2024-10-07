@@ -17,6 +17,8 @@ app.secret_key = 'supersecretkey'  # Für Flash-Nachrichten
 
 # Globale Variablen für Fortschritt und Status
 progress = 0
+progress_percentage = 0  # Fortschritt in Prozent
+lock = threading.Lock()  # Lock für thread-sichere Updates
 
 # Erstelle das Upload-Verzeichnis, wenn es nicht existiert
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
@@ -178,7 +180,7 @@ def categorize_message(subject, message_body):
         return "Unkategorisiert"
 
 def process_and_copy_messages(file_path, sharepoint_site_url, list_name, user_email, user_pw):
-    global progress
+    global progress, progress_percentage, lock
     if file_path.endswith(".msg"):
         msg = extract_msg.Message(file_path)
         msg_body = msg.body
@@ -191,17 +193,22 @@ def process_and_copy_messages(file_path, sharepoint_site_url, list_name, user_em
         # Hier wird der Zielordner festgelegt (kann angepasst werden)
         # In diesem Fall speichern wir die Dateien nicht lokal, sondern nur in SharePoint
         save_to_sharepoint_list(os.path.basename(file_path), category, return_date, msg_body, sharepoint_site_url, list_name, user_email, user_pw)
-        progress += 1  # Fortschritt erhöhen
+        
+        # Thread-sichere Fortschrittsaktualisierung
+        with lock:
+            progress += 1
 
 
 def email_processing_thread(file_paths, sharepoint_site_url, list_name, user_email, user_pw):
-    global progress, progress_percentage
+    global progress, progress_percentage, lock
     total_files = len(file_paths)
 
     for file_path in file_paths:
         process_and_copy_messages(file_path, sharepoint_site_url, list_name, user_email, user_pw)
-        # Berechne den Fortschritt als Prozentsatz
-        progress_percentage = int(progress / total_files) * 100  # Fortlaufender Fortschritt in Prozent
+        
+        # Thread-sichere Berechnung des Fortschritts
+        with lock:
+            progress_percentage = int((progress / total_files) * 100)
     
 
 @app.route('/', methods=['GET', 'POST'])
@@ -247,6 +254,10 @@ def index():
                 if not all([sharepoint_site_url, list_name, user_email, user_pw]):
                     flash('Bitte fülle alle Felder aus.')
                     return redirect(request.url)
+                
+                # Initialisiere den Fortschritt
+                global progress
+                progress = 0
 
                 # Starte den E-Mail-Verarbeitungs-Thread
                 threading.Thread(target=email_processing_thread, args=(file_paths, sharepoint_site_url, list_name, user_email, user_pw)).start()
