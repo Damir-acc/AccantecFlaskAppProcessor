@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 import os
 import extract_msg
 import shutil
@@ -8,10 +8,15 @@ from office365.sharepoint.client_context import ClientContext
 from office365.runtime.auth.user_credential import UserCredential
 from werkzeug.utils import secure_filename
 import zipfile
+import threading
+import time
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads/'  # Verzeichnis für hochgeladene Dateien
 app.secret_key = 'supersecretkey'  # Für Flash-Nachrichten
+
+# Globale Variablen für Fortschritt und Status
+progress = 0
 
 # Erstelle das Upload-Verzeichnis, wenn es nicht existiert
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
@@ -173,6 +178,7 @@ def categorize_message(subject, message_body):
         return "Unkategorisiert"
 
 def process_and_copy_messages(file_path, sharepoint_site_url, list_name, user_email, user_pw):
+    global progress
     if file_path.endswith(".msg"):
         msg = extract_msg.Message(file_path)
         msg_body = msg.body
@@ -185,10 +191,22 @@ def process_and_copy_messages(file_path, sharepoint_site_url, list_name, user_em
         # Hier wird der Zielordner festgelegt (kann angepasst werden)
         # In diesem Fall speichern wir die Dateien nicht lokal, sondern nur in SharePoint
         save_to_sharepoint_list(os.path.basename(file_path), category, return_date, msg_body, sharepoint_site_url, list_name, user_email, user_pw)
+        progress += 1  # Fortschritt erhöhen
 
+
+def email_processing_thread(file_paths, sharepoint_site_url, list_name, user_email, user_pw):
+    global progress
+    total_files = len(file_paths)
+
+    for file_path in file_paths:
+        process_and_copy_messages(file_path, sharepoint_site_url, list_name, user_email, user_pw)
+
+    progress = total_files  # Fortschritt auf 100 % setzen
+    
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
+    global progress, status_message
     if request.method == 'POST':
         # Überprüfe, ob die Datei im Request vorhanden ist
         if 'file' not in request.files:
@@ -213,26 +231,27 @@ def index():
                     zip_ref.extractall(app.config['UPLOAD_FOLDER'])
 
                 # Verarbeitung aller .msg-Dateien im entpackten Verzeichnis
+                file_paths = []
                 for root, dirs, files in os.walk(app.config['UPLOAD_FOLDER']):
                     for f in files:
                         if f.endswith('.msg'):
                             msg_file_path = os.path.join(root, f)
+                            file_paths.append(msg_file_path)
 
-                            # Holen der SharePoint-Daten aus dem Formular
-                            sharepoint_site_url = request.form.get('sharepoint_url')
-                            list_name = request.form.get('list_name')
-                            user_email = request.form.get('user_email')
-                            user_pw = request.form.get('user_pw')
+                # Holen der SharePoint-Daten aus dem Formular
+                sharepoint_site_url = request.form.get('sharepoint_url')
+                list_name = request.form.get('list_name')
+                user_email = request.form.get('user_email')
+                user_pw = request.form.get('user_pw')
 
-                            if not all([sharepoint_site_url, list_name, user_email, user_pw]):
-                                flash('Bitte fülle alle Felder aus.')
-                                return redirect(request.url)
+                if not all([sharepoint_site_url, list_name, user_email, user_pw]):
+                    flash('Bitte fülle alle Felder aus.')
+                    return redirect(request.url)
 
-                            try:
-                                process_and_copy_messages(msg_file_path, sharepoint_site_url, list_name, user_email, user_pw)
-                                flash('Dateien erfolgreich verarbeitet.')
-                            except Exception as e:
-                                flash(f'Fehler bei der Verarbeitung: {e}')
+                # Starte den E-Mail-Verarbeitungs-Thread
+                threading.Thread(target=email_processing_thread, args=(file_paths, sharepoint_site_url, list_name, user_email, user_pw)).start()
+
+                flash('Dateien werden verarbeitet. Sie werden benachrichtigt, wenn die Verarbeitung abgeschlossen ist.')
 
                 # Löschen der ZIP-Datei nach der Verarbeitung
                 os.remove(file_path)
@@ -244,6 +263,11 @@ def index():
             return redirect(url_for('index'))
 
     return render_template('index.html')
+
+@app.route('/api/progress', methods=['GET'])
+def progress_api():
+    global progress
+    return jsonify({"progress": progress})
 
 if __name__ == "__main__":
     app.run(debug=True)
