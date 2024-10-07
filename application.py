@@ -200,8 +200,8 @@ def email_processing_thread(file_paths, sharepoint_site_url, list_name, user_ema
 
     for file_path in file_paths:
         process_and_copy_messages(file_path, sharepoint_site_url, list_name, user_email, user_pw)
-
-    progress = total_files  # Fortschritt auf 100 % setzen
+        # Berechne den Fortschritt als Prozentsatz
+        progress = (progress / total_files) * 100  # Fortlaufender Fortschritt in Prozent
     
 
 @app.route('/', methods=['GET', 'POST'])
