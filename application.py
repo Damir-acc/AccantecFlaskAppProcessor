@@ -195,18 +195,18 @@ def process_and_copy_messages(file_path, sharepoint_site_url, list_name, user_em
 
 
 def email_processing_thread(file_paths, sharepoint_site_url, list_name, user_email, user_pw):
-    global progress
+    global progress, progress_percentage
     total_files = len(file_paths)
 
     for file_path in file_paths:
         process_and_copy_messages(file_path, sharepoint_site_url, list_name, user_email, user_pw)
         # Berechne den Fortschritt als Prozentsatz
-        progress = (progress / total_files) * 100  # Fortlaufender Fortschritt in Prozent
+        progress_percentage = int(progress / total_files) * 100  # Fortlaufender Fortschritt in Prozent
     
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    global progress, status_message
+    global progress_percentage
     if request.method == 'POST':
         # Überprüfe, ob die Datei im Request vorhanden ist
         if 'file' not in request.files:
@@ -266,8 +266,8 @@ def index():
 
 @app.route('/api/progress', methods=['GET'])
 def progress_api():
-    global progress
-    return jsonify({"progress": progress})
+    global progress_percentage
+    return jsonify({"progress": progress_percentage})
 
 if __name__ == "__main__":
     app.run(debug=True)
