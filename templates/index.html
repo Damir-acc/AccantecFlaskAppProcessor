@@ -190,7 +190,7 @@
                 e.preventDefault(); // Verhindert die Standardübermittlung
                 submitButton.hide(); // Versteckt den Senden-Button
                 abortButton.show(); // Zeigt den Abbrechen-Button an
-                isCopying = true; // Setzt den Status auf "sendet"
+                isCopying = true; // Setzt den Status auf "kopiert"
 
                 const formData = new FormData(this); // Formulardaten erfassen
 
@@ -201,7 +201,10 @@
                     processData: false,
                     contentType: false,
                     success: function(response) {
-                        // Erfolgreiche Rückmeldung, hier könnte man Logik hinzufügen, wenn nötig
+                        alert('Code fertig');
+                        isCopying = false;
+                        submitButton.show(); // Zeigt den Senden-Button wieder an
+                        abortButton.hide(); // Versteckt den Abbrechen-Button
                     },
                     error: function() {
                         alert('Fehler beim Hochladen der Dateien.');
