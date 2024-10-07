@@ -214,6 +214,10 @@ def email_processing_thread(file_paths, sharepoint_site_url, list_name, user_ema
 @app.route('/', methods=['GET', 'POST'])
 def index():
     global progress_percentage
+    # Fortschritt und Statusmeldungen beim Neuladen der Seite zurücksetzen
+    if request.method == 'GET':
+        with lock:  # Thread-Safe Zurücksetzen
+            progress_percentage = 0
     if request.method == 'POST':
         # Überprüfe, ob die Datei im Request vorhanden ist
         if 'file' not in request.files:
