@@ -128,23 +128,28 @@
     <div class="container">
         <h1>Accantec Mail Processor</h1>
         <form id="mailProcessorForm" method="POST" enctype="multipart/form-data">
+            <div class="form-group">
             <label for="file">Wählen Sie eine ZIP-Datei mit .msg-Dateien:</label>
             <input type="file" name="file" accept=".zip" required>
-
+            </div>
             <h2>SharePoint Informationen</h2>
+            <div class="form-group">
             <label for="sharepoint_url">SharePoint URL:</label>
             <input type="text" name="sharepoint_url" required>
-
+            </div>
+            <div class="form-group">
             <label for="list_name">SharePoint Listenname:</label>
             <input type="text" name="list_name" required>
-
+            </div>
+            <div class="form-group">
             <label for="user_email">Benutzer-E-Mail:</label>
             <input type="email" name="user_email" required>
-
+            </div>
+            <div class="form-group">
             <label for="user_pw">Passwort:</label>
             <input type="password" name="user_pw" required>
-
-            <button type="submit" id="submitButton">E-Mails senden</button>
+            </div>
+            <button type="submit" id="submitButton">ZIP-Datei hochladen und verarbeiten</button>
             <button type="button" id="abortButton" style="display:none;">Abbrechen</button>
         </form>
 
@@ -172,9 +177,9 @@
         // Fortschritt alle paar Sekunden aktualisieren
         setInterval(fetchProgress, 500);
 
-        // Button-Logik: Umschalten zwischen "Senden" und "Abbrechen"
+        // Button-Logik: Umschalten zwischen "Verarbeiten" und "Abbrechen"
         $(document).ready(function() {
-            let isSending = false;
+            let isCopying = false;
             const submitButton = $('#submitButton');
             const abortButton = $('#abortButton');
 
@@ -182,7 +187,7 @@
                 e.preventDefault(); // Verhindert die Standardübermittlung
                 submitButton.hide(); // Versteckt den Senden-Button
                 abortButton.show(); // Zeigt den Abbrechen-Button an
-                isSending = true; // Setzt den Status auf "sendet"
+                isCopying = true; // Setzt den Status auf "sendet"
 
                 const formData = new FormData(this); // Formulardaten erfassen
 
@@ -197,7 +202,7 @@
                     },
                     error: function() {
                         alert('Fehler beim Hochladen der Dateien.');
-                        isSending = false;
+                        isCopying = false;
                         submitButton.show(); // Zeigt den Senden-Button wieder an
                         abortButton.hide(); // Versteckt den Abbrechen-Button
                     }
@@ -206,12 +211,12 @@
 
             // Abbruch-Button-Klick-Ereignis
             abortButton.on('click', function() {
-                if (isSending) {
+                if (isCopying) {
                     $.post('/api/abort', function(data) {
                         alert(data.message);
                         abortButton.hide(); // Versteckt den Abbrechen-Button
                         submitButton.show(); // Zeigt den Senden-Button wieder an
-                        isSending = false; // Setzt den Status zurück
+                        isCopying = false; // Setzt den Status zurück
                     });
                 }
             });
