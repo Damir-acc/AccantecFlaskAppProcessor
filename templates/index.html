@@ -4,37 +4,117 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mail Processor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        h1, h2 {
+            color: #333;
+            text-align: center;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        input[type="text"], input[type="email"], input[type="password"], input[type="file"] {
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        input[type="submit"] {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+            color: red;
+        }
+
+        ul li {
+            margin-bottom: 10px;
+        }
+
+        .message-container {
+            margin-top: 20px;
+            color: red;
+        }
+    </style>
 </head>
 <body>
-    <h1>Willkommen beim Mail Processor</h1>
-    <form method="POST" enctype="multipart/form-data">
-        <label for="file">Wählen Sie eine ZIP-Datei mit .msg-Dateien:</label>
-        <input type="file" name="file" accept=".zip" required>
-        
-        <h2>SharePoint Informationen</h2>
-        <label for="sharepoint_url">SharePoint URL:</label>
-        <input type="text" name="sharepoint_url" required><br>
+    <div class="container">
+        <h1>Willkommen beim Mail Processor</h1>
+        <form method="POST" enctype="multipart/form-data">
+            <label for="file">Wählen Sie eine ZIP-Datei mit .msg-Dateien:</label>
+            <input type="file" name="file" accept=".zip" required>
 
-        <label for="list_name">SharePoint Listenname:</label>
-        <input type="text" name="list_name" required><br>
+            <h2>SharePoint Informationen</h2>
+            <label for="sharepoint_url">SharePoint URL:</label>
+            <input type="text" name="sharepoint_url" required>
 
-        <label for="user_email">Benutzer-E-Mail:</label>
-        <input type="email" name="user_email" required><br>
+            <label for="list_name">SharePoint Listenname:</label>
+            <input type="text" name="list_name" required>
 
-        <label for="user_pw">Passwort:</label>
-        <input type="password" name="user_pw" required><br>
+            <label for="user_email">Benutzer-E-Mail:</label>
+            <input type="email" name="user_email" required>
 
-        <input type="submit" value="ZIP-Datei hochladen und verarbeiten">
-    </form>
+            <label for="user_pw">Passwort:</label>
+            <input type="password" name="user_pw" required>
 
-    {% with messages = get_flashed_messages() %}
-      {% if messages %}
-        <ul>
-          {% for message in messages %}
-            <li>{{ message }}</li>
-          {% endfor %}
-        </ul>
-      {% endif %}
-    {% endwith %}
+            <input type="submit" value="ZIP-Datei hochladen und verarbeiten">
+        </form>
+
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="message-container">
+            <ul>
+                {% for message in messages %}
+                <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+        {% endwith %}
+    </div>
 </body>
 </html>
