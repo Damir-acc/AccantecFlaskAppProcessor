@@ -12,33 +12,36 @@
             padding: 0;
             display: flex;
             justify-content: center;
-            align-items: center;
-            height: 100vh;
+            align-items: flex-start; /* Am oberen Rand ausrichten */
+            min-height: 100vh; /* Mindesthöhe für flexibles Layout */
             box-sizing: border-box;
         }
 
         .container {
             background-color: white;
-            padding: 20px;
+            padding: 30px; /* Erhöhter innerer Abstand */
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            max-width: 90%; /* Anpassung der Breite für schmale Ansichten */
-            width: 100%;
+            width: 90%; /* Breite auf 90% setzen */
+            max-width: 1200px; /* Maximale Breite der App */
             box-sizing: border-box;
+            overflow: auto; /* Erlaubt Scrollen, wenn der Inhalt zu groß ist */
+            margin-top: 20px; /* Abstand zum oberen Rand */
         }
 
         h1, h2 {
             color: #333;
             text-align: center;
-            margin: 0 0 20px 0;
+            margin: 0 0 15px 0; /* Mehr Abstand unter der Überschrift */
+            padding-top: 10px; /* Zusätzlicher Abstand oben */
         }
 
         h1 {
-            font-size: 24px; /* Verkleinerung der Schriftgröße für die Teams-App */
+            font-size: 2rem; /* Kleinere Schriftgröße für h1 */
         }
 
         h2 {
-            font-size: 20px;
+            font-size: 1.5rem; /* Kleinere Schriftgröße für h2 */
         }
 
         form {
@@ -47,8 +50,8 @@
         }
 
         label {
-            margin-bottom: 8px;
             font-weight: bold;
+            margin-bottom: 5px;
         }
 
         input[type="text"], input[type="email"], input[type="password"], input[type="file"] {
@@ -57,7 +60,7 @@
             border-radius: 4px;
             border: 1px solid #ccc;
             font-size: 16px;
-            width: 100%;
+            width: 100%; /* Volle Breite der Eingabefelder */
             box-sizing: border-box;
         }
 
@@ -78,6 +81,7 @@
         ul {
             list-style-type: none;
             padding: 0;
+            margin: 0;
             color: red;
         }
 
@@ -89,11 +93,36 @@
             margin-top: 20px;
             color: red;
         }
+
+        /* Media Queries für kleinere Bildschirme */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.5rem; /* Kleinere Schriftgröße auf kleinen Bildschirmen */
+            }
+
+            h2 {
+                font-size: 1.2rem; /* Kleinere Schriftgröße auf kleinen Bildschirmen */
+            }
+
+            input[type="text"], input[type="email"], input[type="password"], input[type="file"], input[type="submit"] {
+                font-size: 14px; /* Kleinere Schriftgröße für Eingabefelder und Buttons */
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.2rem; /* Noch kleinere Schriftgröße auf sehr kleinen Bildschirmen */
+            }
+
+            h2 {
+                font-size: 1rem; /* Noch kleinere Schriftgröße auf sehr kleinen Bildschirmen */
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Willkommen beim Mail Processor</h1>
+        <h1>Accantec Mail Processor</h1>
         <form method="POST" enctype="multipart/form-data">
             <label for="file">Wählen Sie eine ZIP-Datei mit .msg-Dateien:</label>
             <input type="file" name="file" accept=".zip" required>
