@@ -64,17 +64,20 @@
             box-sizing: border-box;
         }
 
-        input[type="submit"] {
-            background-color: #007bff;
-            color: white;
-            border: none;
+        button[type="submit"], button[type="button"] {
             padding: 10px;
             border-radius: 4px;
             cursor: pointer;
             font-size: 16px;
+            border: none;
         }
 
-        input[type="submit"]:hover {
+        button[type="submit"] {
+            background-color: #007bff;
+            color: white;
+        }
+
+        button[type="submit"]:hover {
             background-color: #0056b3;
         }
 
@@ -183,7 +186,7 @@
             const submitButton = $('#submitButton');
             const abortButton = $('#abortButton');
 
-            $('#emailForm').on('submit', function(e) {
+            $('#mailProcessorForm').on('submit', function(e) {
                 e.preventDefault(); // Verhindert die Standardübermittlung
                 submitButton.hide(); // Versteckt den Senden-Button
                 abortButton.show(); // Zeigt den Abbrechen-Button an
