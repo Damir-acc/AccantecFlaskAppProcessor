@@ -18,6 +18,7 @@ app.secret_key = 'supersecretkey'  # Für Flash-Nachrichten
 # Globale Variablen für Fortschritt und Status
 progress = 0
 progress_percentage = 0  # Fortschritt in Prozent
+abort_flag = False
 lock = threading.Lock()  # Lock für thread-sichere Updates
 
 # Erstelle das Upload-Verzeichnis, wenn es nicht existiert
@@ -200,10 +201,14 @@ def process_and_copy_messages(file_path, sharepoint_site_url, list_name, user_em
 
 
 def email_processing_thread(file_paths, sharepoint_site_url, list_name, user_email, user_pw):
-    global progress, progress_percentage, lock
+    global progress, progress_percentage, lock, abort_flag
     total_files = len(file_paths)
 
     for file_path in file_paths:
+        # Abbruchprüfung
+        if abort_flag:
+            break
+
         process_and_copy_messages(file_path, sharepoint_site_url, list_name, user_email, user_pw)
         
         # Thread-sichere Berechnung des Fortschritts
@@ -213,11 +218,12 @@ def email_processing_thread(file_paths, sharepoint_site_url, list_name, user_ema
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    global progress_percentage
+    global progress_percentage, abort_flag
     # Fortschritt und Statusmeldungen beim Neuladen der Seite zurücksetzen
     if request.method == 'GET':
         with lock:  # Thread-Safe Zurücksetzen
             progress_percentage = 0
+            abort_flag = False  # Reset des Abbruch-Flags
     if request.method == 'POST':
         # Überprüfe, ob die Datei im Request vorhanden ist
         if 'file' not in request.files:
@@ -279,10 +285,18 @@ def index():
 
     return render_template('index.html')
 
+@app.route('/api/abort', methods=['POST'])
+def abort():
+    global abort_flag
+    with lock:
+        abort_flag = True  # Setze das Abbruch-Flag
+    return jsonify({"message": "Abbruchvorgang wurde eingeleitet."}), 200
+
 @app.route('/api/progress', methods=['GET'])
-def progress_api():
+def get_progress():
     global progress_percentage
-    return jsonify({"progress": progress_percentage})
+    with lock:  # Thread-Safe Fortschritt auslesen
+        return jsonify({"progress": progress_percentage}), 200
 
 if __name__ == "__main__":
     app.run(debug=True)
