@@ -202,9 +202,9 @@ def process_and_copy_messages(file_path, sharepoint_site_url, list_name, user_em
         except Exception as e:
             print(f"Abbruch der Verarbeitung aufgrund eines Fehlers: {e}")
             # Setze das Abbruchflag und beende den Thread
-            #with lock:
-            #    abort_flag = True
-            #return
+            with lock:
+                abort_flag = True
+            return
 
         # Thread-sichere Fortschrittsaktualisierung
         with lock:
@@ -239,6 +239,7 @@ def index():
         with lock:  # Thread-Safe Zurücksetzen
             progress_percentage = 0
             abort_flag = False  # Reset des Abbruch-Flags
+            emails_completed = False
     if request.method == 'POST':
         # Überprüfe, ob die Datei im Request vorhanden ist
         if 'file' not in request.files:
