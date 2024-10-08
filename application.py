@@ -17,6 +17,7 @@ app.secret_key = 'supersecretkey'  # Für Flash-Nachrichten
 
 # Globale Variablen für Fortschritt und Status
 progress = 0
+status_messages = []
 progress_percentage = 0  # Fortschritt in Prozent
 abort_flag = False
 lock = threading.Lock()  # Lock für thread-sichere Updates
@@ -200,7 +201,8 @@ def process_and_copy_messages(file_path, sharepoint_site_url, list_name, user_em
         try:
             save_to_sharepoint_list(os.path.basename(file_path), category, return_date, msg_body, sharepoint_site_url, list_name, user_email, user_pw)
         except Exception as e:
-            print(f"Abbruch der Verarbeitung aufgrund eines Fehlers: {e}")
+            with lock:
+                status_messages.append(f"Fehler beim Hochladen der E-Mail: {e}")
             # Setze das Abbruchflag und beende den Thread
             with lock:
                 abort_flag = True
@@ -211,19 +213,21 @@ def process_and_copy_messages(file_path, sharepoint_site_url, list_name, user_em
             progress += 1
 
 def email_processing_thread(file_paths, sharepoint_site_url, list_name, user_email, user_pw):
-    global progress, progress_percentage, lock, abort_flag, emails_completed
+    global progress, progress_percentage, lock, abort_flag, emails_completed, status_messages
     total_files = len(file_paths)
 
     for file_path in file_paths:
         # Abbruchprüfung
         if abort_flag:
-            print("Verarbeitung abgebrochen.")
+            with lock:
+                status_messages.append("Hochladen wurde abgebrochen.")
             break
 
         process_and_copy_messages(file_path, sharepoint_site_url, list_name, user_email, user_pw)
         
         # Thread-sichere Berechnung des Fortschritts
         with lock:
+            status_messages.append(f"E-Mail {progress}/{total_files} hochgeladen.")
             progress_percentage = int((progress / total_files) * 100)
 
     # Kopieren abgeschlossen oder abgebrochen
@@ -241,14 +245,7 @@ def index():
             progress_percentage = 0
             abort_flag = False  # Reset des Abbruch-Flags
             emails_completed = False
-    if request.method == 'POST':
-        # Fortschritt und Status vor dem Start der neuen Verarbeitung zurücksetzen
-        with lock:
-            progress = 0
-            progress_percentage = 0
-            abort_flag = False  # Reset für neuen Lauf
-            emails_completed = False
-        
+    if request.method == 'POST':       
         # Überprüfe, ob die Datei im Request vorhanden ist
         if 'file' not in request.files:
             flash('Keine Datei ausgewählt.')
@@ -314,6 +311,7 @@ def abort():
     global abort_flag
     with lock:
         abort_flag = True  # Setze das Abbruch-Flag
+        status_messages.append("Abbruchvorgang wurde eingeleitet.")
     return jsonify({"message": "Abbruchvorgang wurde eingeleitet."}), 200
 
 @app.route('/api/progress', methods=['GET'])
