@@ -202,9 +202,9 @@ def process_and_copy_messages(file_path, sharepoint_site_url, list_name, user_em
         except Exception as e:
             print(f"Abbruch der Verarbeitung aufgrund eines Fehlers: {e}")
             # Setze das Abbruchflag und beende den Thread
-            with lock:
-                abort_flag = True
-            return
+            #with lock:
+            #    abort_flag = True
+            #return
 
         # Thread-sichere Fortschrittsaktualisierung
         with lock:
