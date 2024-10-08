@@ -246,7 +246,7 @@ def index():
         with lock:
             progress = 0
             progress_percentage = 0
-            abort_flag = False  # Reset für neuen Lauf
+            abort_flag = False  # Reset für neuen Lauf 1
             emails_completed = False
         
         # Überprüfe, ob die Datei im Request vorhanden ist
