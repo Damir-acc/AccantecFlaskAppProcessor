@@ -237,7 +237,7 @@ def email_processing_thread(file_paths, sharepoint_site_url, list_name, user_ema
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    global progress_percentage, abort_flag, emails_completed, progress
+    global progress,progress_percentage, abort_flag, emails_completed
     # Fortschritt und Statusmeldungen beim Neuladen der Seite zurücksetzen
     if request.method == 'GET':
         with lock:  # Thread-Safe Zurücksetzen
@@ -287,7 +287,6 @@ def index():
                     return redirect(request.url)
                 
                 # Initialisiere den Fortschritt
-                global progress
                 progress = 0
 
                 # Starte den E-Mail-Verarbeitungs-Thread
