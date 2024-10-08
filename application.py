@@ -228,7 +228,7 @@ def email_processing_thread(file_paths, sharepoint_site_url, list_name, user_ema
 
     # Kopieren abgeschlossen oder abgebrochen
     with lock:
-        emails_completed = not abort_flag
+        emails_completed = True
     
 
 @app.route('/', methods=['GET', 'POST'])
