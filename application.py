@@ -20,6 +20,7 @@ progress = 0
 progress_percentage = 0  # Fortschritt in Prozent
 abort_flag = False
 lock = threading.Lock()  # Lock für thread-sichere Updates
+emails_completed = False  # Neue Variable, um den Abschluss zu verfolgen
 
 # Erstelle das Upload-Verzeichnis, wenn es nicht existiert
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
@@ -201,7 +202,7 @@ def process_and_copy_messages(file_path, sharepoint_site_url, list_name, user_em
 
 
 def email_processing_thread(file_paths, sharepoint_site_url, list_name, user_email, user_pw):
-    global progress, progress_percentage, lock, abort_flag
+    global progress, progress_percentage, lock, abort_flag, emails_completed
     total_files = len(file_paths)
 
     for file_path in file_paths:
@@ -214,11 +215,15 @@ def email_processing_thread(file_paths, sharepoint_site_url, list_name, user_ema
         # Thread-sichere Berechnung des Fortschritts
         with lock:
             progress_percentage = int((progress / total_files) * 100)
+
+    # Kopieren abgeschlossen
+    with lock:
+        emails_completed = True
     
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    global progress_percentage, abort_flag
+    global progress_percentage, abort_flag, emails_completed
     # Fortschritt und Statusmeldungen beim Neuladen der Seite zurücksetzen
     if request.method == 'GET':
         with lock:  # Thread-Safe Zurücksetzen
@@ -297,6 +302,12 @@ def get_progress():
     global progress_percentage
     with lock:  # Thread-Safe Fortschritt auslesen
         return jsonify({"progress": progress_percentage}), 200
+    
+@app.route('/api/complete', methods=['GET'])
+def check_complete():
+    global emails_completed
+    with lock:
+        return jsonify({"completed": emails_completed}), 200
 
 if __name__ == "__main__":
     app.run(debug=True)

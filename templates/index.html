@@ -177,6 +177,22 @@
             });
         }
 
+        function checkCompletion() {
+            $.get('/api/complete', function(data) {
+                if (data.completed) {
+                    alert('E-Mail-Versand abgeschlossen.');
+                    // Zeige den Senden-Button wieder an und verstecke den Abbrechen-Button
+                    $('#submitButton').show();
+                    $('#abortButton').hide();
+                    // Fortschrittsanzeige zurücksetzen
+                    $('#progressBar').css('width', '0%').attr('aria-valuenow', 0).text('0%');
+                    $('#statusMessages').empty(); // Statusmeldungen löschen
+                } else {
+                    setTimeout(checkCompletion, 1000);  // Wenn nicht abgeschlossen, wiederhole die Überprüfung
+                }
+            });
+        }
+
         // Fortschritt alle paar Sekunden aktualisieren
         setInterval(fetchProgress, 500);
 
@@ -201,10 +217,8 @@
                     processData: false,
                     contentType: false,
                     success: function(response) {
-                        alert('Code fertig');
-                        isCopying = false;
-                        submitButton.show(); // Zeigt den Senden-Button wieder an
-                        abortButton.hide(); // Versteckt den Abbrechen-Button
+                        // Starte die Überprüfung des Abschlusses
+                        checkCompletion();
                     },
                     error: function() {
                         alert('Fehler beim Hochladen der Dateien.');
