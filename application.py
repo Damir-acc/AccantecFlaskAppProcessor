@@ -242,6 +242,13 @@ def index():
             abort_flag = False  # Reset des Abbruch-Flags
             emails_completed = False
     if request.method == 'POST':
+        # Fortschritt und Status vor dem Start der neuen Verarbeitung zurücksetzen
+        with lock:
+            progress = 0
+            progress_percentage = 0
+            abort_flag = False  # Reset für neuen Lauf
+            emails_completed = False
+        
         # Überprüfe, ob die Datei im Request vorhanden ist
         if 'file' not in request.files:
             flash('Keine Datei ausgewählt.')
