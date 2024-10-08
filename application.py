@@ -38,7 +38,7 @@ def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepo
             'Title': file_name,  # Dateiname als Titel in der SharePoint-Liste
             'Category': category,  # Kategorie, z.B. "Out of Office", "Email-Adresse nicht gefunden"
             'ReturnDate': return_date.strftime('%Y-%m-%d') if return_date else 'N/A',  # Rückkehrdatum oder N/A
-            'Email_Message': text_body,  #Email Message
+            'Email_Message': text_body,  # E-Mail-Nachricht
         }
 
         # Hinzufügen des neuen Elements zur Liste
@@ -48,7 +48,8 @@ def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepo
         print(f"Die Datei '{file_name}' wurde erfolgreich in der SharePoint-Liste gespeichert.")
     
     except Exception as e:
-        print(f"Fehler beim Speichern der Datei '{file_name}' in der SharePoint-Liste: {e}")
+        # Statt den Fehler nur zu protokollieren, wird er als Exception weitergeleitet
+        raise Exception(f"Fehler beim Speichern in der SharePoint-Liste: {e}")
 
 
 # Funktion zur Extraktion des Rückkehrdatums aus einer Out-of-Office-Nachricht
@@ -178,13 +179,13 @@ def categorize_message(subject, message_body):
         return "Inaktive E-Mail"
     elif "unsubscribe" in lower_body:
         return "Abbestellen"
-    elif "sehr geehrter herr" in lower_body or "sehr geehrte frau" in lower_body or "hallo frau" in lower_body or "hallo herr" in lower_body or "guten tag frau" in lower_body or "guten tag herr" in lower_body or "liebe frau" in lower_body or "lieber herr" in lower_body or "guten morgen frau" in lower_body or "guten morgen herr" in lower_body:
+    elif "aw" in lower_subject or "re" in lower_subject or "sehr geehrter herr" in lower_body or "sehr geehrte frau" in lower_body or "hallo frau" in lower_body or "hallo herr" in lower_body or "guten tag frau" in lower_body or "guten tag herr" in lower_body or "liebe frau" in lower_body or "lieber herr" in lower_body or "guten morgen frau" in lower_body or "guten morgen herr" in lower_body:
         return "Antwort"
     else:
         return "Unkategorisiert"
 
 def process_and_copy_messages(file_path, sharepoint_site_url, list_name, user_email, user_pw):
-    global progress, progress_percentage, lock
+    global progress, progress_percentage, lock, abort_flag
     if file_path.endswith(".msg"):
         msg = extract_msg.Message(file_path)
         msg_body = msg.body
@@ -196,12 +197,18 @@ def process_and_copy_messages(file_path, sharepoint_site_url, list_name, user_em
 
         # Hier wird der Zielordner festgelegt (kann angepasst werden)
         # In diesem Fall speichern wir die Dateien nicht lokal, sondern nur in SharePoint
-        save_to_sharepoint_list(os.path.basename(file_path), category, return_date, msg_body, sharepoint_site_url, list_name, user_email, user_pw)
-        
+        try:
+            save_to_sharepoint_list(os.path.basename(file_path), category, return_date, msg_body, sharepoint_site_url, list_name, user_email, user_pw)
+        except Exception as e:
+            print(f"Abbruch der Verarbeitung aufgrund eines Fehlers: {e}")
+            # Setze das Abbruchflag und beende den Thread
+            with lock:
+                abort_flag = True
+            return
+
         # Thread-sichere Fortschrittsaktualisierung
         with lock:
             progress += 1
-
 
 def email_processing_thread(file_paths, sharepoint_site_url, list_name, user_email, user_pw):
     global progress, progress_percentage, lock, abort_flag, emails_completed
@@ -210,6 +217,7 @@ def email_processing_thread(file_paths, sharepoint_site_url, list_name, user_ema
     for file_path in file_paths:
         # Abbruchprüfung
         if abort_flag:
+            print("Verarbeitung abgebrochen.")
             break
 
         process_and_copy_messages(file_path, sharepoint_site_url, list_name, user_email, user_pw)
@@ -218,9 +226,9 @@ def email_processing_thread(file_paths, sharepoint_site_url, list_name, user_ema
         with lock:
             progress_percentage = int((progress / total_files) * 100)
 
-    # Kopieren abgeschlossen
+    # Kopieren abgeschlossen oder abgebrochen
     with lock:
-        emails_completed = True
+        emails_completed = not abort_flag
     
 
 @app.route('/', methods=['GET', 'POST'])
