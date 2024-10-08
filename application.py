@@ -175,9 +175,11 @@ def categorize_message(subject, message_body):
         print(return_date)
         return "Out of Office"
     elif "email address does not exist" in lower_body or "existiert nicht mehr" in lower_body or "no longer with" in lower_body or "no longer employed" in lower_body or "nicht mehr tätig" in lower_body or "retirement" in lower_body or "nicht mehr beschäftigt" in lower_body or "unzustellbar" in lower_subject or "email address does not exist" in lower_subject or "undelivered mail" in lower_subject or pattern.search(lower_body):
-        return "Email-Adresse nicht gefunden"
+        return "Inaktive E-Mail"
     elif "unsubscribe" in lower_body:
-        return "Aus Liste nehmen"
+        return "Abbestellen"
+    elif "sehr geehrter herr" in lower_body or "sehr geehrte frau" in lower_body or "hallo frau" in lower_body or "hallo herr" in lower_body or "guten tag frau" in lower_body or "guten tag herr" in lower_body or "liebe frau" in lower_body or "lieber herr" in lower_body or "guten morgen frau" in lower_body or "guten morgen herr" in lower_body:
+        return "Antwort"
     else:
         return "Unkategorisiert"
 
