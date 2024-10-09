@@ -312,6 +312,11 @@ def abort():
         status_messages.append("Abbruchvorgang wurde eingeleitet.")
     return jsonify({"message": "Abbruchvorgang wurde eingeleitet."}), 200
 
+@app.route('/api/status', methods=['GET'])
+def get_status():
+    with lock:  # Thread-Safe Status auslesen
+        return jsonify(status_messages), 200
+
 @app.route('/api/progress', methods=['GET'])
 def get_progress():
     global progress_percentage
