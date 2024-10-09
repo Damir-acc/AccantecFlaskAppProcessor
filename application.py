@@ -186,7 +186,7 @@ def categorize_message(subject, message_body):
         return "Unkategorisiert"
 
 def process_and_copy_messages(file_path, sharepoint_site_url, list_name, user_email, user_pw):
-    global progress, progress_percentage, lock, abort_flag
+    global progress, progress_percentage, lock, abort_flag, status_messages
     if file_path.endswith(".msg"):
         msg = extract_msg.Message(file_path)
         msg_body = msg.body
@@ -237,7 +237,7 @@ def email_processing_thread(file_paths, sharepoint_site_url, list_name, user_ema
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    global progress,progress_percentage, abort_flag, emails_completed
+    global progress,progress_percentage, abort_flag, emails_completed, status_messages
     # Fortschritt und Statusmeldungen beim Neuladen der Seite zurücksetzen
     if request.method == 'GET':
         with lock:  # Thread-Safe Zurücksetzen
@@ -248,13 +248,13 @@ def index():
     if request.method == 'POST':       
         # Überprüfe, ob die Datei im Request vorhanden ist
         if 'file' not in request.files:
-            flash('Keine Datei ausgewählt.')
+            status_messages.append('Keine Datei ausgewählt.')
             return redirect(request.url)
 
         file = request.files['file']
 
         if file.filename == '':
-            flash('Keine Datei ausgewählt.')
+            status_messages.append('Keine Datei ausgewählt.')
             return redirect(request.url)
 
         if file:
@@ -283,22 +283,21 @@ def index():
                 user_pw = request.form.get('user_pw')
 
                 if not all([sharepoint_site_url, list_name, user_email, user_pw]):
-                    flash('Bitte fülle alle Felder aus.')
+                    status_messages.append('Bitte fülle alle Felder aus.')
                     return redirect(request.url)
                 
                 # Initialisiere den Fortschritt
-                progress = 0
+                #progress = 0
 
                 # Starte den E-Mail-Verarbeitungs-Thread
                 threading.Thread(target=email_processing_thread, args=(file_paths, sharepoint_site_url, list_name, user_email, user_pw)).start()
-
-                flash('Dateien werden verarbeitet. Sie werden benachrichtigt, wenn die Verarbeitung abgeschlossen ist.')
+                status_messages.append('Dateien werden verarbeitet.')
 
                 # Löschen der ZIP-Datei nach der Verarbeitung
                 os.remove(file_path)
 
             else:
-                flash('Bitte laden Sie eine ZIP-Datei mit .msg-Dateien hoch.')
+                status_messages.append('Bitte laden Sie eine ZIP-Datei mit .msg-Dateien hoch.')
                 return redirect(request.url)
 
             return redirect(url_for('index'))
