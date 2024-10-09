@@ -243,9 +243,13 @@ def index():
         with lock:  # Thread-Safe Zurücksetzen
             progress = 0
             progress_percentage = 0
+            status_messages= []
             abort_flag = False  # Reset des Abbruch-Flags
             emails_completed = False
-    if request.method == 'POST':       
+    if request.method == 'POST':
+        # Setze abort_flag zurück, bevor ein neuer Upload-Prozess gestartet wird
+        with lock:
+            abort_flag = False  # Reset des Abbruch-Flags bei POST-Start       
         # Überprüfe, ob die Datei im Request vorhanden ist
         if 'file' not in request.files:
             status_messages.append('Keine Datei ausgewählt.')
