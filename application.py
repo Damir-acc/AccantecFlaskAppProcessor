@@ -181,7 +181,7 @@ def categorize_message(subject, message_body):
     elif "unsubscribe" in lower_body:
         return "Abbestellen"
     elif "aw" in lower_subject or "re" in lower_subject or "sehr geehrter herr" in lower_body or "sehr geehrte frau" in lower_body or "hallo frau" in lower_body or "hallo herr" in lower_body or "guten tag frau" in lower_body or "guten tag herr" in lower_body or "liebe frau" in lower_body or "lieber herr" in lower_body or "guten morgen frau" in lower_body or "guten morgen herr" in lower_body:
-        return "Antwort"
+        return "Rückmeldung"
     else:
         return "Unkategorisiert"
 
