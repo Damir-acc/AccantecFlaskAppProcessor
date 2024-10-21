@@ -99,6 +99,7 @@ def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepo
         ).json()
  
         access_token_SH = api_result.json().get('access_token') 
+        status_messages(f"ACCESS TOKEN SHAREPOINT: {access_token_SH}")
         # Erstellen Sie den ClientContext mit dem Access Token
         ctx = ClientContext(sharepoint_site_url).with_access_token(access_token_SH)
         #client_credentials = ClientCredential(app.config["CLIENT_ID"],app.config["CLIENT_SECRET"])
