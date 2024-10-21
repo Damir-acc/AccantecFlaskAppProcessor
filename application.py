@@ -7,6 +7,7 @@ import re
 from datetime import datetime
 from office365.sharepoint.client_context import ClientContext
 from office365.runtime.auth.user_credential import UserCredential
+from office365.runtime.auth.client_credential import ClientCredential
 from werkzeug.utils import secure_filename
 import zipfile
 import threading
@@ -88,10 +89,14 @@ emails_completed = False  # Neue Variable, um den Abschluss zu verfolgen
 # Erstelle das Upload-Verzeichnis, wenn es nicht existiert
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
-def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepoint_site_url, list_name, user_email, user_pw):
+def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepoint_site_url, list_name, access_token):
     try:
+        ctx = ClientContext(sharepoint_site_url)
+        # Fügen Sie das Access Token direkt zu den HTTP-Headern hinzu
+        ctx.authenticate_request = lambda request: request.headers.update({'Authorization': f'Bearer {access_token}'})
+        #ctx = ClientContext(sharepoint_site_url).with_access_token(token.token)
         # Verbindungsinformationen zu SharePoint
-        ctx = ClientContext(sharepoint_site_url).with_credentials(UserCredential(user_email, user_pw))
+        #ctx = ClientContext(sharepoint_site_url).with_credentials(UserCredential(user_email, user_pw))
 
         # Zugriff auf die SharePoint-Liste
         list_object = ctx.web.lists.get_by_title(list_name)
@@ -247,7 +252,7 @@ def categorize_message(subject, message_body):
     else:
         return "Unkategorisiert"
 
-def process_and_copy_messages(file_path, sharepoint_site_url, list_name, user_email, user_pw):
+def process_and_copy_messages(file_path, sharepoint_site_url, list_name, access_token):
     global progress, progress_percentage, lock, abort_flag, status_messages
     if file_path.endswith(".msg"):
         msg = extract_msg.Message(file_path)
@@ -261,7 +266,7 @@ def process_and_copy_messages(file_path, sharepoint_site_url, list_name, user_em
         # Hier wird der Zielordner festgelegt (kann angepasst werden)
         # In diesem Fall speichern wir die Dateien nicht lokal, sondern nur in SharePoint
         try:
-            save_to_sharepoint_list(os.path.basename(file_path), category, return_date, msg_body, sharepoint_site_url, list_name, user_email, user_pw)
+            save_to_sharepoint_list(os.path.basename(file_path), category, return_date, msg_body, sharepoint_site_url, list_name, access_token)
         except Exception as e:
             with lock:
                 status_messages.append(f"Fehler beim Hochladen der E-Mail: {e}")
@@ -274,7 +279,7 @@ def process_and_copy_messages(file_path, sharepoint_site_url, list_name, user_em
         with lock:
             progress += 1
 
-def email_processing_thread(file_paths, sharepoint_site_url, list_name, user_email, user_pw):
+def email_processing_thread(file_paths, sharepoint_site_url, list_name, access_token):
     global progress, progress_percentage, lock, abort_flag, emails_completed, status_messages
     total_files = len(file_paths)
 
@@ -285,7 +290,7 @@ def email_processing_thread(file_paths, sharepoint_site_url, list_name, user_ema
                 status_messages.append("Hochladen wurde abgebrochen.")
             break
 
-        process_and_copy_messages(file_path, sharepoint_site_url, list_name, user_email, user_pw)
+        process_and_copy_messages(file_path, sharepoint_site_url, list_name, access_token)
         
         # Thread-sichere Berechnung des Fortschritts
         with lock:
@@ -355,8 +360,10 @@ def upload_files():
                 # Initialisiere den Fortschritt
                 #progress = 0
 
+                access_token = auth.get_token_for_user(application_config.SCOPE)
+
                 # Starte den E-Mail-Verarbeitungs-Thread
-                threading.Thread(target=email_processing_thread, args=(file_paths, sharepoint_site_url, list_name, user_email, user_pw)).start()
+                threading.Thread(target=email_processing_thread, args=(file_paths, sharepoint_site_url, list_name, access_token)).start()
                 status_messages.append('Dateien werden verarbeitet.')
 
                 # Löschen der ZIP-Datei nach der Verarbeitung
