@@ -298,7 +298,7 @@ def email_processing_thread(file_paths, sharepoint_site_url, list_name, user_ema
     
 
 @app.route('/', methods=['GET', 'POST'])
-def index():
+def upload_files():
     global progress,progress_percentage, abort_flag, emails_completed, status_messages
     # Fortschritt und Statusmeldungen beim Neuladen der Seite zurücksetzen
     if request.method == 'GET':
@@ -366,9 +366,9 @@ def index():
                 status_messages.append('Bitte laden Sie eine ZIP-Datei mit .msg-Dateien hoch.')
                 return redirect(request.url)
 
-            return redirect(url_for('index'))
+            return redirect(url_for('upload_files'))
 
-    return render_template('index.html')
+    return render_template('processor.html')
 
 @app.route('/api/abort', methods=['POST'])
 def abort():
