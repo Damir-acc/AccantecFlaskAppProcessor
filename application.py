@@ -91,13 +91,8 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepoint_site_url, list_name, access_token):
     try:
-        client_credentials = ClientCredential(app.config["CLIENT_ID"], app.config["CLIENT_SECRET"])
-        ctx = ClientContext(sharepoint_site_url).with_credentials(client_credentials)
-        web = ctx.web
-        ctx.load(web)
-        ctx.execute_query()
-        status_messages.append(f"Authenticated into SharePoint as:{web.properties['Title']}")
-        #ctx = ClientContext(sharepoint_site_url)
+        # Erstellen Sie den ClientContext mit dem Access Token
+        ctx = ClientContext(sharepoint_site_url).with_access_token(access_token)
         #client_credentials = ClientCredential(app.config["CLIENT_ID"],app.config["CLIENT_SECRET"])
         # Fügen Sie das Access Token direkt zu den HTTP-Headern hinzu
         #ctx.authenticate_request = lambda request: request.headers.update({'Authorization': f'Bearer {access_token}'})
