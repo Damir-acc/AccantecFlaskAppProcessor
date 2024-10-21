@@ -126,6 +126,8 @@ def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepo
         print(f"Die Datei '{file_name}' wurde erfolgreich in der SharePoint-Liste gespeichert.")
     
     except Exception as e:
+        if hasattr(e, 'response') and e.response:
+            status_messages.append(f"Antwort vom Server: {e.response.text}")
         # Statt den Fehler nur zu protokollieren, wird er als Exception weitergeleitet
         raise Exception(f"Fehler beim Speichern in der SharePoint-Liste: {e}")
 
