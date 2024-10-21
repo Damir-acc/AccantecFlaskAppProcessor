@@ -91,8 +91,16 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepoint_site_url, list_name, access_token):
     try:
+        # Get access token 
+        api_result = requests.get(
+        application_config.ENDPOINT_SHAREPOINT,
+        headers={'Authorization': 'Bearer ' + access_token['access_token']},
+        timeout=30,
+        ).json()
+ 
+        access_token_SH = api_result.json().get('access_token') 
         # Erstellen Sie den ClientContext mit dem Access Token
-        ctx = ClientContext(sharepoint_site_url).with_access_token(access_token)
+        ctx = ClientContext(sharepoint_site_url).with_access_token(access_token_SH)
         #client_credentials = ClientCredential(app.config["CLIENT_ID"],app.config["CLIENT_SECRET"])
         # Fügen Sie das Access Token direkt zu den HTTP-Headern hinzu
         #ctx.authenticate_request = lambda request: request.headers.update({'Authorization': f'Bearer {access_token}'})
