@@ -14,7 +14,7 @@ ENDPOINT = 'https://graph.microsoft.com/v1.0/me'
 #EMAIL_SEND_ENDPOINT = 'https://graph.microsoft.com/v1.0/me/sendMail'
 
 # Scope for both user information and email sending permissions
-SCOPE = ["User.Read"]
+SCOPE = ["User.Read","Sites.ReadWrite.All"]
 
 # Tells the Flask-session extension to store sessions in the filesystem
 SESSION_TYPE = "filesystem"
