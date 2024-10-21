@@ -93,8 +93,8 @@ def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepo
     try:
         ctx = ClientContext(sharepoint_site_url)
         # Fügen Sie das Access Token direkt zu den HTTP-Headern hinzu
-        ctx.authenticate_request = lambda request: request.headers.update({'Authorization': f'Bearer {access_token}'})
-        #ctx = ClientContext(sharepoint_site_url).with_access_token(token.token)
+        #ctx.authenticate_request = lambda request: request.headers.update({'Authorization': f'Bearer {access_token}'})
+        ctx = ClientContext(sharepoint_site_url).with_access_token(access_token['access_token'])
         # Verbindungsinformationen zu SharePoint
         #ctx = ClientContext(sharepoint_site_url).with_credentials(UserCredential(user_email, user_pw))
 
