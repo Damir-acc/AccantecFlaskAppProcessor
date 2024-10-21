@@ -91,22 +91,20 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepoint_site_url, list_name, access_token):
     try:
+        client_credentials = ClientCredential(app.config["CLIENT_ID"], app.config["CLIENT_SECRET"])
+        ctx = ClientContext(sharepoint_site_url).with_credentials(client_credentials)
+        web = ctx.web
+        ctx.load(web)
+        ctx.execute_query()
+        status_messages.append(f'Authenticated into SharePoint as:{web.properties['Title']}')
         #ctx = ClientContext(sharepoint_site_url)
         #client_credentials = ClientCredential(app.config["CLIENT_ID"],app.config["CLIENT_SECRET"])
         # Fügen Sie das Access Token direkt zu den HTTP-Headern hinzu
         #ctx.authenticate_request = lambda request: request.headers.update({'Authorization': f'Bearer {access_token}'})
         #ctx = ClientContext(sharepoint_site_url).with_access_token(access_token['access_token'])
         # Verbindungsinformationen zu SharePoint
-        ctx = ClientContext(sharepoint_site_url).with_access_token(access_token)
+        #ctx = ClientContext(sharepoint_site_url).with_access_token(access_token)
         #ctx = ClientContext(sharepoint_site_url).with_credentials(UserCredential(user_email, user_pw))
-        try:
-           # Teste die Verbindung, indem du eine einfache Abfrage durchführst
-           web = ctx.web
-           ctx.load(web)
-           ctx.execute_query()
-           print(f"Erfolgreich verbunden mit: {web.properties['Title']}")
-        except Exception as e:
-           print(f"Fehler beim Verbinden mit SharePoint: {e}")
         
         # Zugriff auf die SharePoint-Liste
         list_object = ctx.web.lists.get_by_title(list_name)
