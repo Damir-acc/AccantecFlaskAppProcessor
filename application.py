@@ -96,7 +96,7 @@ def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepo
         web = ctx.web
         ctx.load(web)
         ctx.execute_query()
-        status_messages.append(f'Authenticated into SharePoint as:{web.properties['Title']}')
+        status_messages.append(f"Authenticated into SharePoint as:{web.properties['Title']}")
         #ctx = ClientContext(sharepoint_site_url)
         #client_credentials = ClientCredential(app.config["CLIENT_ID"],app.config["CLIENT_SECRET"])
         # Fügen Sie das Access Token direkt zu den HTTP-Headern hinzu
