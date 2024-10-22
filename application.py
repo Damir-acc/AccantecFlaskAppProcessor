@@ -9,6 +9,7 @@ from office365.sharepoint.client_context import ClientContext
 from office365.graph_client import GraphClient
 from office365.runtime.auth.user_credential import UserCredential
 from office365.runtime.auth.client_credential import ClientCredential
+from office365.runtime.auth.token_response import TokenResponse
 from werkzeug.utils import secure_filename
 import zipfile
 import threading
@@ -96,7 +97,8 @@ def get_access_token():
     if "error" in token_response:
         raise Exception("Error getting access token: {}".format(token_response.get("error")))
     
-    return token_response['access_token']
+    #return token_response['access_token']
+    return TokenResponse(**token_response)
 
 
 #def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepoint_site_url, list_name, access_token):
