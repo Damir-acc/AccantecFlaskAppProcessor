@@ -21,33 +21,6 @@ import application_config
 
 import msal
 
-
-client_id = "your-client-id"
-client_secret = "your-client-secret"
-authority = "https://login.microsoftonline.com/your-tenant-id"
-scope = ["https://yourtenant.sharepoint.com/.default"]
-
-# MSAL-Client initialisieren
-app_msal = msal.ConfidentialClientApplication(
-    client_id,
-    authority=authority,
-    client_credential=client_secret
-)
-
-# Access-Token anfordern
-result = app_msal.acquire_token_for_client(scopes=scope)
-
-# Überprüfe, ob der Token-Erhalt erfolgreich war
-if "access_token" in result:
-    access_token = result['access_token']
-
-    # Verwende das Access-Token für SharePoint-Anfragen
-    ctx = ClientContext("https://yourtenant.sharepoint.com/sites/yoursite")
-    ctx.with_access_token(access_token)
-
-else:
-    print("Error acquiring access token: ", result.get("error_description"))
-
 # Function to retrieve the access token
 def get_token():
     token_response = auth.get_token_for_user(application_config.SCOPE)
