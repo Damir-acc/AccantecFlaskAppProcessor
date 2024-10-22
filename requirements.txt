@@ -7,3 +7,4 @@ office365-rest-python-client==2.5.13  # Für die SharePoint-Integration
 extract-msg==0.28.7
 requests>=2,<3
 identity>=0.5.1,<0.6
+msal==1.21.0
