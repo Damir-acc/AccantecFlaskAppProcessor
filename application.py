@@ -97,8 +97,8 @@ def get_access_token():
     if "error" in token_response:
         raise Exception("Error getting access token: {}".format(token_response.get("error")))
     
-    #return token_response['access_token']
-    return TokenResponse(**token_response)
+    return token_response['access_token']
+    #return TokenResponse(**token_response)
 
 
 #def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepoint_site_url, list_name, access_token):
@@ -160,7 +160,8 @@ def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepo
 
         
         with lock:
-            status_messages.append(f"Before with Context with access token")
+            status_messages.append(f"Before with Context with access token: {type(access_token)}")
+            status_messages.append(f"Before with Context with access token: {access_token}")
 
         #ctx = ClientContext(sharepoint_site_url).with_interactive(tenant_id, client_id)
         #with lock:
