@@ -165,9 +165,9 @@ def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepo
         #with lock:
         #    status_messages.append(f"After with Context with access token: {appli}")
         # ClientContext mit Access-Token
-        #ctx = ClientContext(sharepoint_site_url).with_client_credentials(client_id, client_secret)
+        ctx = ClientContext(sharepoint_site_url).with_client_credentials(client_id, client_secret)
         #target_web = ctx.web.get().execute_query()
-        ctx = ClientContext(sharepoint_site_url).with_access_token(access_token)
+        #ctx = ClientContext(sharepoint_site_url).with_access_token(access_token)
         with lock:
             status_messages.append(f"After with Context with access token, Typ von ctx: {type(ctx)}")
 
