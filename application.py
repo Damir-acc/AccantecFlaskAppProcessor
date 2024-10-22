@@ -160,7 +160,19 @@ def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepo
         with lock:
             status_messages.append(f"Before with Context with access token")
 
-        client = GraphClient.with_client_secret(tenant_id, client_id, client_secret)
+        ctx = ClientContext(sharepoint_site_url).with_interactive(tenant_id, client_id)
+        with lock:
+            status_messages.append(f"After with Context with access token, Typ von ctx: {type(ctx)}")
+        me = ctx.web.current_user.get().execute_query()
+        with lock:
+            status_messages.append(f"With interactive, me: {me}")
+        print(me)
+        web = ctx.web.get().execute_query()
+        with lock:
+            status_messages.append(f"With interactive, web: {web}")
+        print(web)
+
+        #client = GraphClient.with_client_secret(tenant_id, client_id, client_secret)
         #appli = client.applications.get_by_app_id(client_id).get().execute_query()
         #with lock:
         #    status_messages.append(f"After with Context with access token: {appli}")
@@ -169,10 +181,10 @@ def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepo
         #target_web = ctx.web.get().execute_query()
         #ctx = ClientContext(sharepoint_site_url).with_access_token(access_token)
         with lock:
-            status_messages.append(f"After with Context with access token, Typ von ctx: {type(client)}")
+            status_messages.append(f"After with Context with access token, Typ von ctx: {type(ctx)}")
 
         # Zugriff auf die SharePoint-Liste
-        list_object = client.web.lists.get_by_title(list_name)
+        list_object = ctx.web.lists.get_by_title(list_name)
         with lock:
             status_messages.append(f"After access of Sharepoint-list List Object: {list_object}")
         
@@ -191,7 +203,8 @@ def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepo
         list_object.add_item(item_create_info)
         with lock:
             status_messages.append(f"After list object")
-        client.execute_query()
+        #client.applications.get_by_app_id(client_id).get().execute_query()
+        ctx.execute_query()
         with lock:
             status_messages.append(f"After execute query")
 
