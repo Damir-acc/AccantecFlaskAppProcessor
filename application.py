@@ -160,17 +160,22 @@ def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepo
         with lock:
             status_messages.append(f"Before with Context with access token")
 
-        ctx = ClientContext(sharepoint_site_url).with_interactive(tenant_id, client_id)
+        #ctx = ClientContext(sharepoint_site_url).with_interactive(tenant_id, client_id)
+        #with lock:
+        #    status_messages.append(f"After with Context with access token, Typ von ctx: {type(ctx)}")
+        #me = ctx.web.current_user.get().execute_query()
+        #with lock:
+        #    status_messages.append(f"With interactive, me: {me}")
+        #print(me)
+        #web = ctx.web.get().execute_query()
+        #with lock:
+        #    status_messages.append(f"With interactive, web: {web}")
+        #print(web)
+
+        ctx = ClientContext(sharepoint_site_url).with_access_token(access_token)
+        target_web = ctx.web.get().execute_query()
         with lock:
-            status_messages.append(f"After with Context with access token, Typ von ctx: {type(ctx)}")
-        me = ctx.web.current_user.get().execute_query()
-        with lock:
-            status_messages.append(f"With interactive, me: {me}")
-        print(me)
-        web = ctx.web.get().execute_query()
-        with lock:
-            status_messages.append(f"With interactive, web: {web}")
-        print(web)
+            status_messages.append(f"After access token, target_web url: {target_web.url}")
 
         #client = GraphClient.with_client_secret(tenant_id, client_id, client_secret)
         #appli = client.applications.get_by_app_id(client_id).get().execute_query()
