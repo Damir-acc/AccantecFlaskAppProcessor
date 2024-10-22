@@ -183,10 +183,16 @@ def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepo
             'ReturnDate': return_date.strftime('%Y-%m-%d') if return_date else 'N/A',  # Rückkehrdatum oder N/A
             'Email_Message': text_body,  # E-Mail-Nachricht
         }
+        with lock:
+            status_messages.append(f"After item create info")
 
         # Neues Element hinzufügen
         list_object.add_item(item_create_info)
+        with lock:
+            status_messages.append(f"After list object")
         ctx.execute_query()
+        with lock:
+            status_messages.append(f"After execute query")
 
         print(f"Die Datei '{file_name}' wurde erfolgreich in der SharePoint-Liste gespeichert.")
     
