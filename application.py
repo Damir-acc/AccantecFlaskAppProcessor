@@ -19,6 +19,24 @@ import requests
 
 import application_config
 
+
+from dataclasses import dataclass
+
+@dataclass
+class Token:
+    tokenType: str
+    accessToken: str
+
+# Function to retrieve the access token
+def get_token():
+    token_response = auth.get_token_for_user(application_config.SCOPE)
+    if "access_token" in token_response:
+        return Token(tokenType="Bearer", accessToken=token_response["access_token"])
+    else:
+        raise Exception(
+            f"Authentication error: {token_response.get('error')}, {token_response.get('error_description')}"
+        )
+
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads/'  # Verzeichnis für hochgeladene Dateien
 app.secret_key = 'supersecretkey'  # Für Flash-Nachrichten
@@ -175,7 +193,7 @@ def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepo
         #    status_messages.append(f"With interactive, web: {web}")
         #print(web)
 
-        ctx = ClientContext(sharepoint_site_url).with_access_token(get_access_token())
+        ctx = ClientContext(sharepoint_site_url).with_access_token(get_token())
         target_web = ctx.web.get().execute_query()
         with lock:
             status_messages.append(f"After access token, target_web url: {target_web.url}")
