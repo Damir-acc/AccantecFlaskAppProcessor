@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session, current_app
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session, copy_current_request_context
 from flask_session import Session
 import os
 import extract_msg
@@ -465,8 +465,15 @@ def upload_files():
                 #access_token = auth.get_token_for_user(application_config.SCOPE)
                 access_token=get_access_token()
 
+
+                @copy_current_request_context
+                def email_processing_thread_with_context():
+                    email_processing_thread(file_paths, sharepoint_site_url, list_name, access_token)
+
+                # Starte den E-Mail-Verarbeitungs-Thread mit Request-Kontext
+                threading.Thread(target=email_processing_thread_with_context).start()
                 # Starte den E-Mail-Verarbeitungs-Thread
-                threading.Thread(target=email_processing_thread, args=(file_paths, sharepoint_site_url, list_name, access_token)).start()
+                #threading.Thread(target=email_processing_thread, args=(file_paths, sharepoint_site_url, list_name, access_token)).start()
                 #threading.Thread(target=email_processing_thread, args=(file_paths, sharepoint_site_url, list_name)).start()
                 status_messages.append('Dateien werden verarbeitet.')
 
