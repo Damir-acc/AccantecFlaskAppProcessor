@@ -31,7 +31,8 @@ class Token:
 def get_token():
     token_response = auth.get_token_for_user(application_config.SCOPE)
     if "access_token" in token_response:
-        return Token(tokenType="Bearer", accessToken=token_response["access_token"])
+        accessToken=str(token_response["access_token"])
+        return accessToken
     else:
         raise Exception(
             f"Authentication error: {token_response.get('error')}, {token_response.get('error_description')}"
@@ -195,7 +196,7 @@ def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepo
         token_test=get_token()
         with lock:
             status_messages.append(f"TOOOKKEEEN: {token_test}")
-        ctx = ClientContext(sharepoint_site_url).with_access_token(get_token)
+        ctx = ClientContext(sharepoint_site_url).with_access_token(get_token())
         target_web = ctx.web.get().execute_query()
         with lock:
             status_messages.append(f"After access token, target_web url: {target_web.url}")
