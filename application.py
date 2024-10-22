@@ -169,12 +169,12 @@ def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepo
         #target_web = ctx.web.get().execute_query()
         ctx = ClientContext(sharepoint_site_url).with_access_token(access_token)
         with lock:
-            status_messages.append(f"After with Context with access token")
+            status_messages.append(f"After with Context with access token, Typ von ctx: {type(ctx)}")
 
         # Zugriff auf die SharePoint-Liste
         list_object = ctx.web.lists.get_by_title(list_name)
         with lock:
-            status_messages.append(f"After access of Sharepoint-list")
+            status_messages.append(f"After access of Sharepoint-list List Object: {list_object}")
         
         # Element für die SharePoint-Liste vorbereiten
         item_create_info = {
@@ -184,7 +184,8 @@ def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepo
             'Email_Message': text_body,  # E-Mail-Nachricht
         }
         with lock:
-            status_messages.append(f"After item create info")
+            status_messages.append(f"After item create info Item Create Info: {item_create_info}")
+
 
         # Neues Element hinzufügen
         list_object.add_item(item_create_info)
