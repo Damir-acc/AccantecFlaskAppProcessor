@@ -31,8 +31,7 @@ class Token:
 def get_token():
     token_response = auth.get_token_for_user(application_config.SCOPE)
     if "access_token" in token_response:
-        accessToken=str(token_response["access_token"])
-        return accessToken
+        return token_response
     else:
         raise Exception(
             f"Authentication error: {token_response.get('error')}, {token_response.get('error_description')}"
