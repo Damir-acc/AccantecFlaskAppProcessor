@@ -19,19 +19,12 @@ import requests
 
 import application_config
 
-
-from dataclasses import dataclass
-
-@dataclass
-class Token:
-    tokenType: str
-    accessToken: str
-
 # Function to retrieve the access token
 def get_token():
     token_response = auth.get_token_for_user(application_config.SCOPE)
+    access_token=token_response["access_token"]
     if "access_token" in token_response:
-        header = {"Authorization": f"Bearer {token_response["access_token"]}"}
+        header = {"Authorization": f"Bearer {access_token}"}
         return header
     else:
         raise Exception(
