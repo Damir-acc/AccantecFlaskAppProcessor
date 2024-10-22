@@ -89,19 +89,29 @@ emails_completed = False  # Neue Variable, um den Abschluss zu verfolgen
 # Erstelle das Upload-Verzeichnis, wenn es nicht existiert
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
+def get_access_token():
+    # Holen Sie ein Access-Token für die Microsoft Graph API
+    token_response = auth.get_token_for_user(application_config.SCOPE)
+    if "error" in token_response:
+        raise Exception("Error getting access token: {}".format(token_response.get("error")))
+    
+    return token_response['access_token']
+
+
+#def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepoint_site_url, list_name, access_token):
 def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepoint_site_url, list_name, access_token):
-    try:
+   # try:
         # Get access token 
-        api_result = requests.get(
-        application_config.ENDPOINT_SHAREPOINT,
-        headers={'Authorization': 'Bearer ' + access_token['access_token']},
-        timeout=30,
-        ).json()
+       # api_result = requests.get(
+       # application_config.ENDPOINT_SHAREPOINT,
+       # headers={'Authorization': 'Bearer ' + access_token['access_token']},
+       # timeout=30,
+       # ).json()
  
-        access_token_SH = api_result.json().get('access_token') 
-        status_messages(f"ACCESS TOKEN SHAREPOINT: {access_token_SH}")
+       # access_token_SH = api_result.json().get('access_token') 
+      #  status_messages(f"ACCESS TOKEN SHAREPOINT: {access_token_SH}")
         # Erstellen Sie den ClientContext mit dem Access Token
-        ctx = ClientContext(sharepoint_site_url).with_access_token(access_token_SH)
+       # ctx = ClientContext(sharepoint_site_url).with_access_token(access_token_SH)
         #client_credentials = ClientCredential(app.config["CLIENT_ID"],app.config["CLIENT_SECRET"])
         # Fügen Sie das Access Token direkt zu den HTTP-Headern hinzu
         #ctx.authenticate_request = lambda request: request.headers.update({'Authorization': f'Bearer {access_token}'})
@@ -111,7 +121,38 @@ def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepo
         #ctx = ClientContext(sharepoint_site_url).with_credentials(UserCredential(user_email, user_pw))
         
         # Zugriff auf die SharePoint-Liste
+       # list_object = ctx.web.lists.get_by_title(list_name)
+        # Element für die SharePoint-Liste vorbereiten
+      #  item_create_info = {
+       #     'Title': file_name,  # Dateiname als Titel in der SharePoint-Liste
+       #     'Category': category,  # Kategorie, z.B. "Out of Office", "Email-Adresse nicht gefunden"
+       #     'ReturnDate': return_date.strftime('%Y-%m-%d') if return_date else 'N/A',  # Rückkehrdatum oder N/A
+       #     'Email_Message': text_body,  # E-Mail-Nachricht
+       # }
+
+        # Hinzufügen des neuen Elements zur Liste
+      #  list_object.add_item(item_create_info)
+       # ctx.execute_query()
+
+       # print(f"Die Datei '{file_name}' wurde erfolgreich in der SharePoint-Liste gespeichert.")
+    
+    #except Exception as e:
+       # if hasattr(e, 'response') and e.response:
+          #  status_messages.append(f"Antwort vom Server: {e.response.text}")
+        # Statt den Fehler nur zu protokollieren, wird er als Exception weitergeleitet
+       # raise Exception(f"Fehler beim Speichern in der SharePoint-Liste: {e}")
+    
+
+    try:
+        # Token abrufen
+        access_token = get_access_token()
+        
+        # ClientContext mit Access-Token
+        ctx = ClientContext(sharepoint_site_url).with_access_token(access_token)
+
+        # Zugriff auf die SharePoint-Liste
         list_object = ctx.web.lists.get_by_title(list_name)
+        
         # Element für die SharePoint-Liste vorbereiten
         item_create_info = {
             'Title': file_name,  # Dateiname als Titel in der SharePoint-Liste
@@ -120,16 +161,13 @@ def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepo
             'Email_Message': text_body,  # E-Mail-Nachricht
         }
 
-        # Hinzufügen des neuen Elements zur Liste
+        # Neues Element hinzufügen
         list_object.add_item(item_create_info)
         ctx.execute_query()
 
         print(f"Die Datei '{file_name}' wurde erfolgreich in der SharePoint-Liste gespeichert.")
     
     except Exception as e:
-        if hasattr(e, 'response') and e.response:
-            status_messages.append(f"Antwort vom Server: {e.response.text}")
-        # Statt den Fehler nur zu protokollieren, wird er als Exception weitergeleitet
         raise Exception(f"Fehler beim Speichern in der SharePoint-Liste: {e}")
 
 
@@ -373,10 +411,11 @@ def upload_files():
                 # Initialisiere den Fortschritt
                 #progress = 0
 
-                access_token = auth.get_token_for_user(application_config.SCOPE)
+                #access_token = auth.get_token_for_user(application_config.SCOPE)
 
                 # Starte den E-Mail-Verarbeitungs-Thread
-                threading.Thread(target=email_processing_thread, args=(file_paths, sharepoint_site_url, list_name, access_token)).start()
+                #threading.Thread(target=email_processing_thread, args=(file_paths, sharepoint_site_url, list_name, access_token)).start()
+                threading.Thread(target=email_processing_thread, args=(file_paths, sharepoint_site_url, list_name)).start()
                 status_messages.append('Dateien werden verarbeitet.')
 
                 # Löschen der ZIP-Datei nach der Verarbeitung
