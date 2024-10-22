@@ -148,11 +148,15 @@ def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepo
         # Token abrufen
         with lock:
             status_messages.append(f"Access Token: {access_token}")
+            status_messages.append(f"CLIENT ID: {app.config["CLIENT_ID"]}")
+            status_messages.append(f"TENANT ID: {app.config["TENANT_ID"]}")
         
         with lock:
             status_messages.append(f"Before with Context with access token")
         # ClientContext mit Access-Token
-        ctx = ClientContext(sharepoint_site_url).with_access_token(access_token)
+        ctx = ClientContext(sharepoint_site_url).with_interactive(app.config["TENANT_ID"], app.config["CLIENT_ID"])
+        me = ctx.web.current_user.get().execute_query()
+        #ctx = ClientContext(sharepoint_site_url).with_access_token(access_token)
         with lock:
             status_messages.append(f"After with Context with access token")
 
