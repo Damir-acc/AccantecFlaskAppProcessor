@@ -212,7 +212,10 @@ def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepo
 
             # Verwende das Access-Token für SharePoint-Anfragen
             ctx = ClientContext(sharepoint_site_url)
-            ctx.with_access_token(access_token_msal)
+            #ctx.with_access_token(access_token_msal)
+            ctx.authenticate_request = lambda request: request.headers.update({
+            'Authorization': f'Bearer {access_token_msal}'
+            })
 
         else:
             print("Error acquiring access token: ", result.get("error_description"))
