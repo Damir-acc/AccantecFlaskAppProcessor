@@ -6,6 +6,7 @@ import shutil
 import re
 from datetime import datetime
 from office365.sharepoint.client_context import ClientContext
+from office365.graph_client import GraphClient
 from office365.runtime.auth.user_credential import UserCredential
 from office365.runtime.auth.client_credential import ClientCredential
 from werkzeug.utils import secure_filename
@@ -158,6 +159,11 @@ def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepo
         
         with lock:
             status_messages.append(f"Before with Context with access token")
+
+        client = GraphClient.with_client_secret(tenant_id, client_id, client_secret)
+        app = client.applications.get_by_app_id(client_id).get().execute_query()
+        with lock:
+            status_messages.append(f"After with Context with access token: {app}")
         # ClientContext mit Access-Token
         ctx = ClientContext(sharepoint_site_url).with_client_credentials(client_id, client_secret)
         target_web = ctx.web.get().execute_query()
