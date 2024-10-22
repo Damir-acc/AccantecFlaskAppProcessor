@@ -19,6 +19,35 @@ import requests
 
 import application_config
 
+import msal
+
+
+client_id = "your-client-id"
+client_secret = "your-client-secret"
+authority = "https://login.microsoftonline.com/your-tenant-id"
+scope = ["https://yourtenant.sharepoint.com/.default"]
+
+# MSAL-Client initialisieren
+app_msal = msal.ConfidentialClientApplication(
+    client_id,
+    authority=authority,
+    client_credential=client_secret
+)
+
+# Access-Token anfordern
+result = app_msal.acquire_token_for_client(scopes=scope)
+
+# Überprüfe, ob der Token-Erhalt erfolgreich war
+if "access_token" in result:
+    access_token = result['access_token']
+
+    # Verwende das Access-Token für SharePoint-Anfragen
+    ctx = ClientContext("https://yourtenant.sharepoint.com/sites/yoursite")
+    ctx.with_access_token(access_token)
+
+else:
+    print("Error acquiring access token: ", result.get("error_description"))
+
 # Function to retrieve the access token
 def get_token():
     token_response = auth.get_token_for_user(application_config.SCOPE)
@@ -37,6 +66,20 @@ app.secret_key = 'supersecretkey'  # Für Flash-Nachrichten
 app.config.from_object(application_config)
 assert app.config["REDIRECT_PATH"] != "/", "REDIRECT_PATH must not be /"
 Session(app)
+
+# Azure AD App-Registrierung
+client_id=app.config["CLIENT_ID"]
+tenant_id=app.config["TENANT_ID"]
+client_secret=app.config["CLIENT_SECRET"]
+authority=app.config["AUTHORITY"]
+scope="https://accantec.sharepoint.com/.default"
+
+# MSAL-Client initialisieren
+app_msal = msal.ConfidentialClientApplication(
+    client_id,
+    authority=authority,
+    client_credential=client_secret
+)
 
 app.jinja_env.globals.update(Auth=identity.web.Auth)  # Useful in template for B2C
 auth = identity.web.Auth(
@@ -187,9 +230,23 @@ def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepo
         #    status_messages.append(f"With interactive, web: {web}")
         #print(web)
         token_test=get_token()
+        # Access-Token anfordern
+        result = app_msal.acquire_token_for_client(scopes=scope)
+
+        # Überprüfe, ob der Token-Erhalt erfolgreich war
+        if "access_token" in result:
+            access_token_msal = result['access_token']
+
+            # Verwende das Access-Token für SharePoint-Anfragen
+            ctx = ClientContext(sharepoint_site_url)
+            ctx.with_access_token(access_token_msal)
+
+        else:
+            print("Error acquiring access token: ", result.get("error_description"))
+
         with lock:
-            status_messages.append(f"TOOOKKEEEN: {token_test}")
-        ctx = ClientContext(sharepoint_site_url).with_access_token(get_token())
+            status_messages.append(f"TOOOKKEEEN: {access_token_msal}")
+        #ctx = ClientContext(sharepoint_site_url).with_access_token(get_token())
         target_web = ctx.web.get().execute_query()
         with lock:
             status_messages.append(f"After access token, target_web url: {target_web.url}")
