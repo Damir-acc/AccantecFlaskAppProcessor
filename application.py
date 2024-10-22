@@ -100,6 +100,7 @@ def get_access_token():
 
 #def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepoint_site_url, list_name, access_token):
 def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepoint_site_url, list_name, access_token):
+    global lock, status_messages
    # try:
         # Get access token 
        # api_result = requests.get(
@@ -146,12 +147,20 @@ def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepo
     try:
         # Token abrufen
         access_token = get_access_token()
+        with lock:
+            status_messages.append(f"Access Token: {access_token}")
         
+        with lock:
+            status_messages.append(f"Before with Context with access token")
         # ClientContext mit Access-Token
         ctx = ClientContext(sharepoint_site_url).with_access_token(access_token)
+        with lock:
+            status_messages.append(f"After with Context with access token")
 
         # Zugriff auf die SharePoint-Liste
         list_object = ctx.web.lists.get_by_title(list_name)
+        with lock:
+            status_messages.append(f"After access of Sharepoint-list")
         
         # Element für die SharePoint-Liste vorbereiten
         item_create_info = {
