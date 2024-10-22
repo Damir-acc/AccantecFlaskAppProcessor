@@ -158,9 +158,9 @@ def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepo
             status_messages.append(f"TENANT ID: {tenant_id}")
             status_messages.append(f"CLIENT ID: {client_secret}")
 
-        
+        type_access_token=type(access_token)
         with lock:
-            status_messages.append(f"Before with Context with access token: {type(access_token)}")
+            status_messages.append(f"Before with Context with access token: {type_access_token}")
             status_messages.append(f"Before with Context with access token: {access_token}")
 
         #ctx = ClientContext(sharepoint_site_url).with_interactive(tenant_id, client_id)
