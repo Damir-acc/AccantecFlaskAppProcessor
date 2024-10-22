@@ -160,19 +160,19 @@ def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepo
         with lock:
             status_messages.append(f"Before with Context with access token")
 
-        #client = GraphClient.with_client_secret(tenant_id, client_id, client_secret)
+        client = GraphClient.with_client_secret(tenant_id, client_id, client_secret)
         #appli = client.applications.get_by_app_id(client_id).get().execute_query()
         #with lock:
         #    status_messages.append(f"After with Context with access token: {appli}")
         # ClientContext mit Access-Token
-        ctx = ClientContext(sharepoint_site_url).with_client_credentials(client_id, client_secret)
+        #ctx = ClientContext(sharepoint_site_url).with_client_credentials(client_id, client_secret)
         #target_web = ctx.web.get().execute_query()
         #ctx = ClientContext(sharepoint_site_url).with_access_token(access_token)
         with lock:
-            status_messages.append(f"After with Context with access token, Typ von ctx: {type(ctx)}")
+            status_messages.append(f"After with Context with access token, Typ von ctx: {type(client)}")
 
         # Zugriff auf die SharePoint-Liste
-        list_object = ctx.web.lists.get_by_title(list_name)
+        list_object = client.web.lists.get_by_title(list_name)
         with lock:
             status_messages.append(f"After access of Sharepoint-list List Object: {list_object}")
         
@@ -191,7 +191,7 @@ def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepo
         list_object.add_item(item_create_info)
         with lock:
             status_messages.append(f"After list object")
-        ctx.execute_query()
+        client.execute_query()
         with lock:
             status_messages.append(f"After execute query")
 
