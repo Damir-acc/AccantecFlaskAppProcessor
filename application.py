@@ -326,9 +326,7 @@ def process_and_copy_messages(file_path, sharepoint_site_url, list_name):
         # Hier wird der Zielordner festgelegt (kann angepasst werden)
         # In diesem Fall speichern wir die Dateien nicht lokal, sondern nur in SharePoint
         try:
-            app = current_app._get_current_object()  # Zugriff auf das aktuelle App-Objekt
-            with app.app_context():
-                save_to_sharepoint_list(os.path.basename(file_path), category, return_date, msg_body, sharepoint_site_url, list_name)
+            save_to_sharepoint_list(os.path.basename(file_path), category, return_date, msg_body, sharepoint_site_url, list_name)
         except Exception as e:
             with lock:
                 status_messages.append(f"Fehler beim Hochladen der E-Mail: {e}")
@@ -426,7 +424,9 @@ def upload_files():
 
                 # Starte den E-Mail-Verarbeitungs-Thread
                 #threading.Thread(target=email_processing_thread, args=(file_paths, sharepoint_site_url, list_name, access_token)).start()
-                threading.Thread(target=email_processing_thread, args=(file_paths, sharepoint_site_url, list_name)).start()
+                app = current_app._get_current_object()  # Zugriff auf das aktuelle App-Objekt
+                with app.app_context():
+                   threading.Thread(target=email_processing_thread, args=(file_paths, sharepoint_site_url, list_name)).start()
                 status_messages.append('Dateien werden verarbeitet.')
 
                 # Löschen der ZIP-Datei nach der Verarbeitung
