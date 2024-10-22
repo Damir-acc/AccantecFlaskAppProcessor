@@ -192,7 +192,8 @@ def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepo
         #with lock:
         #    status_messages.append(f"With interactive, web: {web}")
         #print(web)
-
+        with lock:
+            status_messages.append(f"TOOOKKEEEN: {get_token}")
         ctx = ClientContext(sharepoint_site_url).with_access_token(get_token)
         target_web = ctx.web.get().execute_query()
         with lock:
