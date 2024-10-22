@@ -99,7 +99,7 @@ def get_access_token():
 
 
 #def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepoint_site_url, list_name, access_token):
-def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepoint_site_url, list_name):
+def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepoint_site_url, list_name, access_token):
     global lock, status_messages
    # try:
         # Get access token 
@@ -146,7 +146,6 @@ def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepo
 
     try:
         # Token abrufen
-        access_token = get_access_token()
         with lock:
             status_messages.append(f"Access Token: {access_token}")
         
@@ -312,7 +311,7 @@ def categorize_message(subject, message_body):
     else:
         return "Unkategorisiert"
 
-def process_and_copy_messages(file_path, sharepoint_site_url, list_name):
+def process_and_copy_messages(file_path, sharepoint_site_url, list_name, access_token):
     global progress, progress_percentage, lock, abort_flag, status_messages
     if file_path.endswith(".msg"):
         msg = extract_msg.Message(file_path)
@@ -326,7 +325,7 @@ def process_and_copy_messages(file_path, sharepoint_site_url, list_name):
         # Hier wird der Zielordner festgelegt (kann angepasst werden)
         # In diesem Fall speichern wir die Dateien nicht lokal, sondern nur in SharePoint
         try:
-            save_to_sharepoint_list(os.path.basename(file_path), category, return_date, msg_body, sharepoint_site_url, list_name)
+            save_to_sharepoint_list(os.path.basename(file_path), category, return_date, msg_body, sharepoint_site_url, list_name, access_token)
         except Exception as e:
             with lock:
                 status_messages.append(f"Fehler beim Hochladen der E-Mail: {e}")
@@ -339,7 +338,7 @@ def process_and_copy_messages(file_path, sharepoint_site_url, list_name):
         with lock:
             progress += 1
 
-def email_processing_thread(file_paths, sharepoint_site_url, list_name):
+def email_processing_thread(file_paths, sharepoint_site_url, list_name, access_token):
     global progress, progress_percentage, lock, abort_flag, emails_completed, status_messages
     total_files = len(file_paths)
 
@@ -350,7 +349,7 @@ def email_processing_thread(file_paths, sharepoint_site_url, list_name):
                 status_messages.append("Hochladen wurde abgebrochen.")
             break
 
-        process_and_copy_messages(file_path, sharepoint_site_url, list_name)
+        process_and_copy_messages(file_path, sharepoint_site_url, list_name, access_token)
         
         # Thread-sichere Berechnung des Fortschritts
         with lock:
@@ -421,12 +420,11 @@ def upload_files():
                 #progress = 0
 
                 #access_token = auth.get_token_for_user(application_config.SCOPE)
+                access_token=get_access_token()
 
                 # Starte den E-Mail-Verarbeitungs-Thread
-                #threading.Thread(target=email_processing_thread, args=(file_paths, sharepoint_site_url, list_name, access_token)).start()
-                app = current_app._get_current_object()  # Zugriff auf das aktuelle App-Objekt
-                with app.app_context():
-                   threading.Thread(target=email_processing_thread, args=(file_paths, sharepoint_site_url, list_name)).start()
+                threading.Thread(target=email_processing_thread, args=(file_paths, sharepoint_site_url, list_name, access_token)).start()
+                #threading.Thread(target=email_processing_thread, args=(file_paths, sharepoint_site_url, list_name)).start()
                 status_messages.append('Dateien werden verarbeitet.')
 
                 # Löschen der ZIP-Datei nach der Verarbeitung
