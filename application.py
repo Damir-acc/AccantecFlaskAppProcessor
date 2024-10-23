@@ -43,8 +43,8 @@ def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepo
         ctx = ClientContext(sharepoint_site_url).with_credentials(credentials)
 
         # Testen, ob der Benutzer korrekt authentifiziert wurde
-        me = ctx.web.current_user.get().execute_query()
-        print(me.login_name)
+        #me = ctx.web.current_user.get().execute_query()
+        #print(me.login_name)
         
         # Zugriff auf die SharePoint-Liste
         list_object = ctx.web.lists.get_by_title(list_name)
