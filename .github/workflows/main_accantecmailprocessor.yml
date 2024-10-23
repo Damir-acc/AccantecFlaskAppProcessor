@@ -7,7 +7,7 @@ name: Build and deploy Python app to Azure Web App - AccantecMailProcessor
 on:
   push:
     branches:
-      - interactive
+      - main
   workflow_dispatch:
 
 jobs:
