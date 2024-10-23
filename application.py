@@ -28,7 +28,7 @@ def get_token():
     if "access_token" in token_response:
         bearer_token = f"Authorization: Bearer {access_token}"
         header = {"Authorization": f"Bearer {access_token}"}
-        return bearer_token
+        return access_token
     else:
         raise Exception(
             f"Authentication error: {token_response.get('error')}, {token_response.get('error_description')}"
@@ -224,7 +224,9 @@ def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepo
         with lock:
             status_messages.append(f"TOOOKKEEEN: {access_token}")
         ctx = ClientContext(sharepoint_site_url)
-        ctx.with_access_token(get_token())
+        ctx.authenticate_request = lambda request: request.headers.update({
+            'Authorization': f'Bearer {access_token}'
+        })
         #ctx = ClientContext(sharepoint_site_url).with_access_token(get_token())
         target_web = ctx.web.get().execute_query()
         with lock:
