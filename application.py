@@ -29,25 +29,32 @@ emails_completed = False  # Neue Variable, um den Abschluss zu verfolgen
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 
-def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepoint_site_url, list_name, user_email, user_pw):
+from office365.sharepoint.client_context import ClientContext
+from office365.runtime.auth.client_credential import ClientCredential
+
+def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepoint_site_url, list_name):
     try:
-        client_id=app.config["CLIENT_ID"]
-        tenant_id=app.config["TENANT_ID"]
-        # Verbindungsinformationen zu SharePoint
-        ctx = ClientContext(sharepoint_site_url).with_interactive(tenant_id, client_id)
+        client_id = app.config["CLIENT_ID"]
+        client_secret = app.config["CLIENT_SECRET"]  # Du benötigst ein Client-Secret
+        tenant_id = app.config["TENANT_ID"]
+        
+        # Verwende Client-Credentials-Authentifizierung
+        credentials = ClientCredential(client_id, client_secret)
+        ctx = ClientContext(sharepoint_site_url).with_credentials(credentials)
+
+        # Testen, ob der Benutzer korrekt authentifiziert wurde
         me = ctx.web.current_user.get().execute_query()
         print(me.login_name)
-        #ctx = ClientContext(sharepoint_site_url).with_credentials(UserCredential(user_email, user_pw))
-
+        
         # Zugriff auf die SharePoint-Liste
         list_object = ctx.web.lists.get_by_title(list_name)
         
         # Element für die SharePoint-Liste vorbereiten
         item_create_info = {
-            'Title': file_name,  # Dateiname als Titel in der SharePoint-Liste
-            'Category': category,  # Kategorie, z.B. "Out of Office", "Email-Adresse nicht gefunden"
-            'ReturnDate': return_date.strftime('%Y-%m-%d') if return_date else 'N/A',  # Rückkehrdatum oder N/A
-            'Email_Message': text_body,  # E-Mail-Nachricht
+            'Title': file_name,
+            'Category': category,
+            'ReturnDate': return_date.strftime('%Y-%m-%d') if return_date else 'N/A',
+            'Email_Message': text_body,
         }
 
         # Hinzufügen des neuen Elements zur Liste
@@ -57,7 +64,6 @@ def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepo
         print(f"Die Datei '{file_name}' wurde erfolgreich in der SharePoint-Liste gespeichert.")
     
     except Exception as e:
-        # Statt den Fehler nur zu protokollieren, wird er als Exception weitergeleitet
         raise Exception(f"Fehler beim Speichern in der SharePoint-Liste: {e}")
 
 
