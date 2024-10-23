@@ -13,6 +13,7 @@ import time
 import application_config
 
 app = Flask(__name__)
+app.config.from_object(application_config)
 app.config['UPLOAD_FOLDER'] = 'uploads/'  # Verzeichnis für hochgeladene Dateien
 app.secret_key = 'supersecretkey'  # Für Flash-Nachrichten
 
