@@ -207,22 +207,22 @@ def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepo
         result = app_msal.acquire_token_for_client(scopes=scope)
 
         # Überprüfe, ob der Token-Erhalt erfolgreich war
-        if "access_token" in result:
-            access_token_msal = result['access_token']
+        #if "access_token" in result:
+        #    access_token_msal = result['access_token']
 
             # Verwende das Access-Token für SharePoint-Anfragen
-            ctx = ClientContext(sharepoint_site_url)
+           # ctx = ClientContext(sharepoint_site_url)
             #ctx.with_access_token(access_token_msal)
-            ctx.authenticate_request = lambda request: request.headers.update({
-            'Authorization': f'Bearer {access_token_msal}'
-            })
+            #ctx.authenticate_request = lambda request: request.headers.update({
+            #'Authorization': f'Bearer {access_token_msal}'
+            #})
 
-        else:
-            print("Error acquiring access token: ", result.get("error_description"))
-
+        #else:
+        #    print("Error acquiring access token: ", result.get("error_description"))
+        access_token=get_token()
         with lock:
-            status_messages.append(f"TOOOKKEEEN: {access_token_msal}")
-        #ctx = ClientContext(sharepoint_site_url).with_access_token(get_token())
+            status_messages.append(f"TOOOKKEEEN: {access_token}")
+        ctx = ClientContext(sharepoint_site_url).with_access_token(get_token())
         target_web = ctx.web.get().execute_query()
         with lock:
             status_messages.append(f"After access token, target_web url: {target_web.url}")
