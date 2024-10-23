@@ -26,8 +26,9 @@ def get_token():
     token_response = auth.get_token_for_user(application_config.SCOPE)
     access_token=token_response["access_token"]
     if "access_token" in token_response:
+        bearer_token = f"Bearer {access_token}"
         header = {"Authorization": f"Bearer {access_token}"}
-        return header
+        return bearer_token
     else:
         raise Exception(
             f"Authentication error: {token_response.get('error')}, {token_response.get('error_description')}"
