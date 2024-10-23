@@ -199,7 +199,7 @@ def categorize_message(subject, message_body):
     else:
         return "Unkategorisiert"
 
-def process_and_copy_messages(file_path, sharepoint_site_url, list_name, user_email, user_pw):
+def process_and_copy_messages(file_path, sharepoint_site_url, list_name):
     global progress, progress_percentage, lock, abort_flag, status_messages
     if file_path.endswith(".msg"):
         msg = extract_msg.Message(file_path)
@@ -213,7 +213,7 @@ def process_and_copy_messages(file_path, sharepoint_site_url, list_name, user_em
         # Hier wird der Zielordner festgelegt (kann angepasst werden)
         # In diesem Fall speichern wir die Dateien nicht lokal, sondern nur in SharePoint
         try:
-            save_to_sharepoint_list(os.path.basename(file_path), category, return_date, msg_body, sharepoint_site_url, list_name, user_email, user_pw)
+            save_to_sharepoint_list(os.path.basename(file_path), category, return_date, msg_body, sharepoint_site_url, list_name)
         except Exception as e:
             with lock:
                 status_messages.append(f"Fehler beim Hochladen der E-Mail: {e}")
@@ -226,7 +226,7 @@ def process_and_copy_messages(file_path, sharepoint_site_url, list_name, user_em
         with lock:
             progress += 1
 
-def email_processing_thread(file_paths, sharepoint_site_url, list_name, user_email, user_pw):
+def email_processing_thread(file_paths, sharepoint_site_url, list_name):
     global progress, progress_percentage, lock, abort_flag, emails_completed, status_messages
     total_files = len(file_paths)
 
@@ -237,7 +237,7 @@ def email_processing_thread(file_paths, sharepoint_site_url, list_name, user_ema
                 status_messages.append("Hochladen wurde abgebrochen.")
             break
 
-        process_and_copy_messages(file_path, sharepoint_site_url, list_name, user_email, user_pw)
+        process_and_copy_messages(file_path, sharepoint_site_url, list_name)
         
         # Thread-sichere Berechnung des Fortschritts
         with lock:
@@ -297,10 +297,10 @@ def index():
                 # Holen der SharePoint-Daten aus dem Formular
                 sharepoint_site_url = request.form.get('sharepoint_url')
                 list_name = request.form.get('list_name')
-                user_email = request.form.get('user_email')
-                user_pw = request.form.get('user_pw')
+                #user_email = request.form.get('user_email')
+                #user_pw = request.form.get('user_pw')
 
-                if not all([sharepoint_site_url, list_name, user_email, user_pw]):
+                if not all([sharepoint_site_url, list_name]):
                     status_messages.append('Bitte fülle alle Felder aus.')
                     return redirect(request.url)
                 
@@ -308,7 +308,7 @@ def index():
                 #progress = 0
 
                 # Starte den E-Mail-Verarbeitungs-Thread
-                threading.Thread(target=email_processing_thread, args=(file_paths, sharepoint_site_url, list_name, user_email, user_pw)).start()
+                threading.Thread(target=email_processing_thread, args=(file_paths, sharepoint_site_url, list_name)).start()
                 status_messages.append('Dateien werden verarbeitet.')
 
                 # Löschen der ZIP-Datei nach der Verarbeitung
