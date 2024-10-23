@@ -10,6 +10,7 @@ from werkzeug.utils import secure_filename
 import zipfile
 import threading
 import time
+import application_config
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads/'  # Verzeichnis für hochgeladene Dateien
@@ -26,10 +27,16 @@ emails_completed = False  # Neue Variable, um den Abschluss zu verfolgen
 # Erstelle das Upload-Verzeichnis, wenn es nicht existiert
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
+
 def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepoint_site_url, list_name, user_email, user_pw):
     try:
+        client_id=app.config["CLIENT_ID"]
+        tenant_id=app.config["TENANT_ID"]
         # Verbindungsinformationen zu SharePoint
-        ctx = ClientContext(sharepoint_site_url).with_credentials(UserCredential(user_email, user_pw))
+        ctx = ClientContext(sharepoint_site_url).with_interactive(tenant_id, client_id)
+        me = ctx.web.current_user.get().execute_query()
+        print(me.login_name)
+        #ctx = ClientContext(sharepoint_site_url).with_credentials(UserCredential(user_email, user_pw))
 
         # Zugriff auf die SharePoint-Liste
         list_object = ctx.web.lists.get_by_title(list_name)
