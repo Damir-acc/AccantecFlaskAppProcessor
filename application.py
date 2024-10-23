@@ -26,7 +26,7 @@ def get_token():
     token_response = auth.get_token_for_user(application_config.SCOPE)
     access_token=token_response["access_token"]
     if "access_token" in token_response:
-        bearer_token = f"Bearer {access_token}"
+        bearer_token = f"Authorization: Bearer {access_token}"
         header = {"Authorization": f"Bearer {access_token}"}
         return bearer_token
     else:
