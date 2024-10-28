@@ -50,9 +50,6 @@ authority=app.config["AUTHORITY"]
 scope="https://accantec.sharepoint.com/.default"
 
 def acquire_token():
-    authority_url = "https://login.microsoftonline.com/{0}".format(
-        application_config.get("default", "tenant")
-    )
     import msal
 
     app = msal.ConfidentialClientApplication(
