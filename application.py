@@ -21,6 +21,7 @@ import application_config
 
 import msal
 
+
 # Function to retrieve the access token
 def get_token():
     token_response = auth.get_token_for_user(application_config.SCOPE)
@@ -48,12 +49,28 @@ client_secret=app.config["CLIENT_SECRET"]
 authority=app.config["AUTHORITY"]
 scope="https://accantec.sharepoint.com/.default"
 
+def acquire_token():
+    authority_url = "https://login.microsoftonline.com/{0}".format(
+        application_config.get("default", "tenant")
+    )
+    import msal
+
+    app = msal.ConfidentialClientApplication(
+        authority=authority,
+        client_id=client_id,
+        client_credential=client_secret,
+    )
+    token_json = app.acquire_token_for_client(
+        scopes=["https://mediadev8.sharepoint.com/.default"]
+    )
+    return TokenResponse.from_json(token_json)
+
 # MSAL-Client initialisieren
-app_msal = msal.ConfidentialClientApplication(
-    client_id,
-    authority=authority,
-    client_credential=client_secret
-)
+#app_msal = msal.ConfidentialClientApplication(
+   # client_id,
+  #  authority=authority,
+   # client_credential=client_secret
+#)
 
 app.jinja_env.globals.update(Auth=identity.web.Auth)  # Useful in template for B2C
 auth = identity.web.Auth(
@@ -205,7 +222,7 @@ def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepo
         #print(web)
         token_test=get_token()
         # Access-Token anfordern
-        result = app_msal.acquire_token_for_client(scopes=scope)
+        #result = app_msal.acquire_token_for_client(scopes=scope)
 
         # Überprüfe, ob der Token-Erhalt erfolgreich war
         #if "access_token" in result:
@@ -220,14 +237,14 @@ def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepo
 
         #else:
         #    print("Error acquiring access token: ", result.get("error_description"))
-        access_token=get_token()
-        with lock:
-            status_messages.append(f"TOOOKKEEEN: {access_token}")
-        ctx = ClientContext(sharepoint_site_url)
-        ctx.authenticate_request = lambda request: request.headers.update({
-            'Authorization': f'Bearer {access_token}'
-        })
-        #ctx = ClientContext(sharepoint_site_url).with_access_token(get_token())
+        #access_token=get_token()
+        #with lock:
+        #    status_messages.append(f"TOOOKKEEEN: {access_token}")
+        #ctx = ClientContext(sharepoint_site_url)
+       # ctx.authenticate_request = lambda request: request.headers.update({
+          #  'Authorization': f'Bearer {access_token}'
+        #})
+        ctx = ClientContext(sharepoint_site_url).with_access_token(acquire_token)
         target_web = ctx.web.get().execute_query()
         with lock:
             status_messages.append(f"After access token, target_web url: {target_web.url}")
