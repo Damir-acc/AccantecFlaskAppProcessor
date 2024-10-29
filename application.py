@@ -49,26 +49,6 @@ client_secret=app.config["CLIENT_SECRET"]
 authority=app.config["AUTHORITY"]
 scope="https://accantec.sharepoint.com/.default"
 
-def acquire_token():
-    import msal
-
-    app = msal.ConfidentialClientApplication(
-        authority=authority,
-        client_id=client_id,
-        client_credential=client_secret,
-    )
-    token_json = app.acquire_token_for_client(
-        scopes=["https://mediadev8.sharepoint.com/.default"]
-    )
-    return TokenResponse.from_json(token_json)
-
-# MSAL-Client initialisieren
-#app_msal = msal.ConfidentialClientApplication(
-   # client_id,
-  #  authority=authority,
-   # client_credential=client_secret
-#)
-
 app.jinja_env.globals.update(Auth=identity.web.Auth)  # Useful in template for B2C
 auth = identity.web.Auth(
     session=session,
@@ -145,56 +125,15 @@ def get_access_token():
 
 
 #def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepoint_site_url, list_name, access_token):
-def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepoint_site_url, list_name, access_token):
+def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepoint_site_url, list_name, access_token, user_key_path):
     global lock, status_messages
-   # try:
-        # Get access token 
-       # api_result = requests.get(
-       # application_config.ENDPOINT_SHAREPOINT,
-       # headers={'Authorization': 'Bearer ' + access_token['access_token']},
-       # timeout=30,
-       # ).json()
- 
-       # access_token_SH = api_result.json().get('access_token') 
-      #  status_messages(f"ACCESS TOKEN SHAREPOINT: {access_token_SH}")
-        # Erstellen Sie den ClientContext mit dem Access Token
-       # ctx = ClientContext(sharepoint_site_url).with_access_token(access_token_SH)
-        #client_credentials = ClientCredential(app.config["CLIENT_ID"],app.config["CLIENT_SECRET"])
-        # Fügen Sie das Access Token direkt zu den HTTP-Headern hinzu
-        #ctx.authenticate_request = lambda request: request.headers.update({'Authorization': f'Bearer {access_token}'})
-        #ctx = ClientContext(sharepoint_site_url).with_access_token(access_token['access_token'])
-        # Verbindungsinformationen zu SharePoint
-        #ctx = ClientContext(sharepoint_site_url).with_access_token(access_token)
-        #ctx = ClientContext(sharepoint_site_url).with_credentials(UserCredential(user_email, user_pw))
-        
-        # Zugriff auf die SharePoint-Liste
-       # list_object = ctx.web.lists.get_by_title(list_name)
-        # Element für die SharePoint-Liste vorbereiten
-      #  item_create_info = {
-       #     'Title': file_name,  # Dateiname als Titel in der SharePoint-Liste
-       #     'Category': category,  # Kategorie, z.B. "Out of Office", "Email-Adresse nicht gefunden"
-       #     'ReturnDate': return_date.strftime('%Y-%m-%d') if return_date else 'N/A',  # Rückkehrdatum oder N/A
-       #     'Email_Message': text_body,  # E-Mail-Nachricht
-       # }
-
-        # Hinzufügen des neuen Elements zur Liste
-      #  list_object.add_item(item_create_info)
-       # ctx.execute_query()
-
-       # print(f"Die Datei '{file_name}' wurde erfolgreich in der SharePoint-Liste gespeichert.")
-    
-    #except Exception as e:
-       # if hasattr(e, 'response') and e.response:
-          #  status_messages.append(f"Antwort vom Server: {e.response.text}")
-        # Statt den Fehler nur zu protokollieren, wird er als Exception weitergeleitet
-       # raise Exception(f"Fehler beim Speichern in der SharePoint-Liste: {e}")
-    
 
     try:
         # Token abrufen
         client_id=app.config["CLIENT_ID"]
         tenant_id=app.config["TENANT_ID"]
         client_secret=app.config["CLIENT_SECRET"]
+        thumbprint=app.config["THUMBPRINT"]
         with lock:
             status_messages.append(f"Access Token: {access_token}")
             status_messages.append(f"CLIENT ID: {client_id}")
@@ -241,7 +180,17 @@ def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepo
        # ctx.authenticate_request = lambda request: request.headers.update({
           #  'Authorization': f'Bearer {access_token}'
         #})
-        ctx = ClientContext(sharepoint_site_url).with_access_token(acquire_token)
+        #cert_path = "{0}/../selfsignkey.pem".format(os.path.dirname(__file__))
+        with open(user_key_path, "r") as f:
+            private_key = open(user_key_path).read()
+
+        cert_credentials = {
+            "tenant": tenant_id,
+            "client_id": client_id,
+            "thumbprint": thumbprint,
+            "private_key": private_key,
+        }
+        ctx = ClientContext(sharepoint_site_url).with_client_certificate(**cert_credentials)
         target_web = ctx.web.get().execute_query()
         with lock:
             status_messages.append(f"After access token, target_web url: {target_web.url}")
@@ -420,7 +369,7 @@ def categorize_message(subject, message_body):
     else:
         return "Unkategorisiert"
 
-def process_and_copy_messages(file_path, sharepoint_site_url, list_name, access_token):
+def process_and_copy_messages(file_path, sharepoint_site_url, list_name, access_token, user_key_path):
     global progress, progress_percentage, lock, abort_flag, status_messages
     if file_path.endswith(".msg"):
         msg = extract_msg.Message(file_path)
@@ -434,7 +383,7 @@ def process_and_copy_messages(file_path, sharepoint_site_url, list_name, access_
         # Hier wird der Zielordner festgelegt (kann angepasst werden)
         # In diesem Fall speichern wir die Dateien nicht lokal, sondern nur in SharePoint
         try:
-            save_to_sharepoint_list(os.path.basename(file_path), category, return_date, msg_body, sharepoint_site_url, list_name, access_token)
+            save_to_sharepoint_list(os.path.basename(file_path), category, return_date, msg_body, sharepoint_site_url, list_name, access_token, user_key_path)
         except Exception as e:
             with lock:
                 status_messages.append(f"Fehler beim Hochladen der E-Mail: {e}")
@@ -447,7 +396,7 @@ def process_and_copy_messages(file_path, sharepoint_site_url, list_name, access_
         with lock:
             progress += 1
 
-def email_processing_thread(file_paths, sharepoint_site_url, list_name, access_token):
+def email_processing_thread(file_paths, sharepoint_site_url, list_name, access_token, user_key_path):
     global progress, progress_percentage, lock, abort_flag, emails_completed, status_messages
     total_files = len(file_paths)
 
@@ -458,7 +407,7 @@ def email_processing_thread(file_paths, sharepoint_site_url, list_name, access_t
                 status_messages.append("Hochladen wurde abgebrochen.")
             break
 
-        process_and_copy_messages(file_path, sharepoint_site_url, list_name, access_token)
+        process_and_copy_messages(file_path, sharepoint_site_url, list_name, access_token, user_key_path)
         
         # Thread-sichere Berechnung des Fortschritts
         with lock:
@@ -484,13 +433,19 @@ def upload_files():
     if request.method == 'POST':
         # Setze abort_flag zurück, bevor ein neuer Upload-Prozess gestartet wird
         with lock:
-            abort_flag = False  # Reset des Abbruch-Flags bei POST-Start       
+            abort_flag = False  # Reset des Abbruch-Flags bei POST-Start
+
+        user_key = request.files['user_key']
+        user_key_path = os.path.join(app.config['UPLOAD_FOLDER'], user_key.filename)
+        user_key.save(user_key_path)
+
         # Überprüfe, ob die Datei im Request vorhanden ist
         if 'file' not in request.files:
             status_messages.append('Keine Datei ausgewählt.')
             return redirect(request.url)
 
         file = request.files['file']
+
 
         if file.filename == '':
             status_messages.append('Keine Datei ausgewählt.')
@@ -521,7 +476,7 @@ def upload_files():
                 user_email = request.form.get('user_email')
                 user_pw = request.form.get('user_pw')
 
-                if not all([sharepoint_site_url, list_name, user_email, user_pw]):
+                if not all([sharepoint_site_url, list_name, user_email, user_pw, user_key]):
                     status_messages.append('Bitte fülle alle Felder aus.')
                     return redirect(request.url)
                 
@@ -534,7 +489,7 @@ def upload_files():
 
                 @copy_current_request_context
                 def email_processing_thread_with_context():
-                    email_processing_thread(file_paths, sharepoint_site_url, list_name, access_token)
+                    email_processing_thread(file_paths, sharepoint_site_url, list_name, access_token, user_key_path)
 
                 # Starte den E-Mail-Verarbeitungs-Thread mit Request-Kontext
                 threading.Thread(target=email_processing_thread_with_context).start()
