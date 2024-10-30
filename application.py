@@ -6,10 +6,6 @@ import shutil
 import re
 from datetime import datetime
 from office365.sharepoint.client_context import ClientContext
-from office365.graph_client import GraphClient
-from office365.runtime.auth.user_credential import UserCredential
-from office365.runtime.auth.client_credential import ClientCredential
-from office365.runtime.auth.token_response import TokenResponse
 from werkzeug.utils import secure_filename
 import zipfile
 import threading
@@ -18,22 +14,6 @@ import identity.web
 import requests
 
 import application_config
-
-import msal
-
-
-# Function to retrieve the access token
-def get_token():
-    token_response = auth.get_token_for_user(application_config.SCOPE)
-    access_token=token_response["access_token"]
-    if "access_token" in token_response:
-        bearer_token = f"Authorization: Bearer {access_token}"
-        header = {"Authorization": f"Bearer {access_token}"}
-        return access_token
-    else:
-        raise Exception(
-            f"Authentication error: {token_response.get('error')}, {token_response.get('error_description')}"
-        )
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads/'  # Verzeichnis für hochgeladene Dateien
@@ -121,10 +101,7 @@ def get_access_token():
         raise Exception("Error getting access token: {}".format(token_response.get("error")))
     
     return token_response['access_token']
-    #return TokenResponse(**token_response)
 
-
-#def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepoint_site_url, list_name, access_token):
 def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepoint_site_url, list_name, access_token, user_key_path):
     global lock, status_messages
 
@@ -132,54 +109,8 @@ def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepo
         # Token abrufen
         client_id=app.config["CLIENT_ID"]
         tenant_id=app.config["TENANT_ID"]
-        client_secret=app.config["CLIENT_SECRET"]
         thumbprint=app.config["THUMBPRINT"]
-        with lock:
-            status_messages.append(f"Access Token: {access_token}")
-            status_messages.append(f"CLIENT ID: {client_id}")
-            status_messages.append(f"TENANT ID: {tenant_id}")
-            status_messages.append(f"CLIENT ID: {client_secret}")
 
-        type_access_token=type(access_token)
-        with lock:
-            status_messages.append(f"Before with Context with access token: {type_access_token}")
-            status_messages.append(f"Before with Context with access token: {access_token}")
-
-        #ctx = ClientContext(sharepoint_site_url).with_interactive(tenant_id, client_id)
-        #with lock:
-        #    status_messages.append(f"After with Context with access token, Typ von ctx: {type(ctx)}")
-        #me = ctx.web.current_user.get().execute_query()
-        #with lock:
-        #    status_messages.append(f"With interactive, me: {me}")
-        #print(me)
-        #web = ctx.web.get().execute_query()
-        #with lock:
-        #    status_messages.append(f"With interactive, web: {web}")
-        #print(web)
-        token_test=get_token()
-        # Access-Token anfordern
-        #result = app_msal.acquire_token_for_client(scopes=scope)
-
-        # Überprüfe, ob der Token-Erhalt erfolgreich war
-        #if "access_token" in result:
-        #    access_token_msal = result['access_token']
-
-            # Verwende das Access-Token für SharePoint-Anfragen
-           # ctx = ClientContext(sharepoint_site_url)
-            #ctx.with_access_token(access_token_msal)
-            #ctx.authenticate_request = lambda request: request.headers.update({
-            #'Authorization': f'Bearer {access_token_msal}'
-            #})
-
-        #else:
-        #    print("Error acquiring access token: ", result.get("error_description"))
-        #access_token=get_token()
-        #with lock:
-        #    status_messages.append(f"TOOOKKEEEN: {access_token}")
-        #ctx = ClientContext(sharepoint_site_url)
-       # ctx.authenticate_request = lambda request: request.headers.update({
-          #  'Authorization': f'Bearer {access_token}'
-        #})
         #cert_path = "{0}/../selfsignkey.pem".format(os.path.dirname(__file__))
         with open(user_key_path, "r") as f:
             private_key = open(user_key_path).read()
@@ -190,26 +121,11 @@ def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepo
             "thumbprint": thumbprint,
             "private_key": private_key,
         }
-        ctx = ClientContext(sharepoint_site_url).with_client_certificate(**cert_credentials)
-        target_web = ctx.web.get().execute_query()
-        with lock:
-            status_messages.append(f"After access token, target_web url: {target_web.url}")
 
-        #client = GraphClient.with_client_secret(tenant_id, client_id, client_secret)
-        #appli = client.applications.get_by_app_id(client_id).get().execute_query()
-        #with lock:
-        #    status_messages.append(f"After with Context with access token: {appli}")
-        # ClientContext mit Access-Token
-        #ctx = ClientContext(sharepoint_site_url).with_client_credentials(client_id, client_secret)
-        #target_web = ctx.web.get().execute_query()
-        #ctx = ClientContext(sharepoint_site_url).with_access_token(access_token)
-        with lock:
-            status_messages.append(f"After with Context with access token, Typ von ctx: {type(ctx)}")
+        ctx = ClientContext(sharepoint_site_url).with_client_certificate(**cert_credentials)
 
         # Zugriff auf die SharePoint-Liste
         list_object = ctx.web.lists.get_by_title(list_name)
-        with lock:
-            status_messages.append(f"After access of Sharepoint-list List Object: {list_object}")
         
         # Element für die SharePoint-Liste vorbereiten
         item_create_info = {
@@ -218,15 +134,11 @@ def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepo
             'ReturnDate': return_date.strftime('%Y-%m-%d') if return_date else 'N/A',  # Rückkehrdatum oder N/A
             'Email_Message': text_body,  # E-Mail-Nachricht
         }
-        with lock:
-            status_messages.append(f"After item create info Item Create Info: {item_create_info}")
-
 
         # Neues Element hinzufügen
         list_object.add_item(item_create_info)
         with lock:
             status_messages.append(f"After list object")
-        #client.applications.get_by_app_id(client_id).get().execute_query()
         ctx.execute_query()
         with lock:
             status_messages.append(f"After execute query")
