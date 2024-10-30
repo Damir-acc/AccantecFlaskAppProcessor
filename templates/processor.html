@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mail Processor</title>
+    <title>Easy Receive</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style>
         body {
@@ -44,11 +44,6 @@
         h2 {
             font-size: 1.5rem;
             margin-top: 20px;
-        }
-
-        label {
-            font-weight: bold;
-            margin-bottom: 5px;
         }
 
         input[type="text"], input[type="file"] {
@@ -143,7 +138,7 @@
             </div>
             <div class="form-group">
                 <label for="user_key">User-Key:</label>
-                <input type="file" class="form-control" name="user_key" required>
+                <input type="file" class="form-control" name="user_key" required style="padding: 3px;">
             </div>
             <button type="submit" id="submitButton">ZIP-Datei hochladen und verarbeiten</button>
             <button type="button" id="abortButton" style="display:none;">Abbrechen</button>
