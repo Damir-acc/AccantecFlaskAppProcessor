@@ -322,13 +322,15 @@ def email_processing_thread(file_paths, sharepoint_site_url, list_name, access_t
 
     with open(user_key_path, "r") as f:
         private_key = open(user_key_path).read()
-    status_messages.append(f"Private key before delete: {private_key}")
+    with lock:
+        status_messages.append(f"Private key before delete: {private_key}")
 
     clear_upload_folder()
 
     with open(user_key_path, "r") as f:
         private_key = open(user_key_path).read()
-    status_messages.append(f"Private key after delete: {private_key}")
+    with lock:
+        status_messages.append(f"Private key after delete: {private_key}")
     
     # Kopieren abgeschlossen oder abgebrochen
     with lock:
