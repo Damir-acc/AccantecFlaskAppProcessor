@@ -433,6 +433,16 @@ def check_complete():
     global emails_completed
     with lock:
         return jsonify({"completed": emails_completed}), 200
+    
+@app.route('/api/reset', methods=['POST'])
+def reset():
+    global progress_percentage, status_messages, abort_flag, emails_completed
+    with lock:  # Thread-Safe Zurücksetzen
+        progress_percentage = 0  # Setze den Fortschritt auf 0 zurück
+        status_messages = []  # Leere die Statusmeldungen
+        abort_flag = False  # Setze das Abbruch-Flag zurück
+        emails_completed = False  # Setze den Abschluss-Status zurück
+    return jsonify({"message": "Fortschritt und Status wurden zurückgesetzt."}), 200
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000)
