@@ -54,7 +54,7 @@
             margin-bottom: 5px;
         }
 
-        input[type="text"], input[type="email"], input[type="password"], input[type="file"], input[type="submit"] {
+        input[type="text"], input[type="file"], input[type="submit"] {
             padding: 10px;
             margin-bottom: 15px;
             border-radius: 4px;
@@ -122,7 +122,7 @@
                 font-size: 1.2rem; /* Kleinere Schriftgröße auf kleinen Bildschirmen */
             }
 
-            input[type="text"], input[type="email"], input[type="password"], input[type="file"], input[type="submit"] {
+            input[type="text"], input[type="file"], input[type="submit"] {
                 font-size: 14px; /* Kleinere Schriftgröße für Eingabefelder und Buttons */
             }
         }
@@ -158,14 +158,6 @@
             <div class="form-group">
                 <label for="user_key">User-Key:</label>
                 <input type="file" class="form-control" name="user_key" required>
-            </div>
-            <div class="form-group">
-               <label for="user_email">Benutzer-E-Mail:</label>
-               <input type="email" name="user_email" required>
-            </div>
-            <div class="form-group">
-               <label for="user_pw">Passwort:</label>
-               <input type="password" name="user_pw" required>
             </div>
             <button type="submit" id="submitButton">ZIP-Datei hochladen und verarbeiten</button>
             <button type="button" id="abortButton" style="display:none;">Abbrechen</button>

@@ -137,11 +137,7 @@ def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepo
 
         # Neues Element hinzufügen
         list_object.add_item(item_create_info)
-        with lock:
-            status_messages.append(f"After list object")
         ctx.execute_query()
-        with lock:
-            status_messages.append(f"After execute query")
 
         print(f"Die Datei '{file_name}' wurde erfolgreich in der SharePoint-Liste gespeichert.")
     
@@ -265,8 +261,6 @@ def categorize_message(subject, message_body):
     lower_body = message_body.lower()
 
     pattern = re.compile("nicht mehr für .+ tätig")
-    #print(lower_subject)
-    #print(lower_body)
     # Überprüfung auf bestimmte Bedingungen im Betreff oder Nachrichtenkörper
     if "out of office" in lower_body or "abwesend" in lower_body or "not available" in lower_body or "wieder persönlich für sie da" in lower_body or "im büro erreichbar" in lower_body or "erreichen mich wieder" in lower_body or "on leave" in lower_body or "im urlaub" in lower_body or "elternzeit" in lower_body or "nicht im dienst" in lower_body or "wieder im hause" in lower_body or "out of the office" in lower_body or "dienstreise" in lower_body or "geschäftsreise" in lower_body or "abwesenheit" in lower_body or "on vacation" in lower_body or "wieder erreichbar" in lower_body or "außer haus" in lower_body or "nicht im haus" in lower_body or "nicht erreichbar" in lower_body or "nicht im büro" in lower_body or "out of office" in lower_subject or "abwesenheit" in lower_subject:
         return_date = extract_return_date(lower_body)
@@ -385,17 +379,11 @@ def upload_files():
                 # Holen der SharePoint-Daten aus dem Formular
                 sharepoint_site_url = request.form.get('sharepoint_url')
                 list_name = request.form.get('list_name')
-                user_email = request.form.get('user_email')
-                user_pw = request.form.get('user_pw')
 
-                if not all([sharepoint_site_url, list_name, user_email, user_pw, user_key]):
+                if not all([sharepoint_site_url, list_name, user_key]):
                     status_messages.append('Bitte fülle alle Felder aus.')
                     return redirect(request.url)
                 
-                # Initialisiere den Fortschritt
-                #progress = 0
-
-                #access_token = auth.get_token_for_user(application_config.SCOPE)
                 access_token=get_access_token()
 
 
