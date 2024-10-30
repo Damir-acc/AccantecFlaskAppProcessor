@@ -4,49 +4,46 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mail Processor</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
             background-color: #f4f4f9;
             margin: 0;
-            padding: 0;
+            padding: 20px;
             display: flex;
             justify-content: center;
-            align-items: flex-start; /* Am oberen Rand ausrichten */
-            min-height: 100vh; /* Mindesthöhe für flexibles Layout */
+            align-items: flex-start;
+            min-height: 100vh;
             box-sizing: border-box;
         }
 
         .container {
             background-color: white;
-            padding: 30px; /* Erhöhter innerer Abstand */
+            padding: 30px;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            width: 90%; /* Breite auf 90% setzen */
-            max-width: 1200px; /* Maximale Breite der App */
+            width: 90%;
+            max-width: 1200px;
             box-sizing: border-box;
-            overflow: auto; /* Erlaubt Scrollen, wenn der Inhalt zu groß ist */
-            margin-top: 20px; /* Abstand zum oberen Rand */
+            overflow: auto;
+            margin-top: 20px;
         }
 
         h1, h2 {
-            color: #333;
+            color: #777;
             text-align: center;
-            margin: 0 0 15px 0; /* Mehr Abstand unter der Überschrift */
-            padding-top: 10px; /* Zusätzlicher Abstand oben */
+            margin: 0 0 15px 0;
+            padding-top: 10px;
         }
 
         h1 {
-            font-size: 2rem; /* Kleinere Schriftgröße für h1 */
+            font-size: 2rem;
         }
 
         h2 {
-            font-size: 1.5rem; /* Kleinere Schriftgröße für h2 */
-        }
-
-        form {
-            display: flex;
-            flex-direction: column;
+            font-size: 1.5rem;
+            margin-top: 20px;
         }
 
         label {
@@ -54,13 +51,13 @@
             margin-bottom: 5px;
         }
 
-        input[type="text"], input[type="file"], input[type="submit"] {
+        input[type="text"], input[type="file"] {
             padding: 10px;
             margin-bottom: 15px;
             border-radius: 4px;
             border: 1px solid #ccc;
             font-size: 16px;
-            width: 100%; /* Volle Breite der Eingabefelder */
+            width: 100%;
             box-sizing: border-box;
         }
 
@@ -69,6 +66,7 @@
             border-radius: 4px;
             cursor: pointer;
             font-size: 16px;
+            width: 100%;
             border: none;
         }
 
@@ -112,28 +110,16 @@
             margin-bottom: 10px;
         }
 
-        /* Media Queries für kleinere Bildschirme */
+        /* Responsive Anpassungen */
         @media (max-width: 768px) {
             h1 {
-                font-size: 1.5rem; /* Kleinere Schriftgröße auf kleinen Bildschirmen */
+                font-size: 1.5rem;
             }
-
             h2 {
-                font-size: 1.2rem; /* Kleinere Schriftgröße auf kleinen Bildschirmen */
+                font-size: 1.2rem;
             }
-
-            input[type="text"], input[type="file"], input[type="submit"] {
-                font-size: 14px; /* Kleinere Schriftgröße für Eingabefelder und Buttons */
-            }
-        }
-
-        @media (max-width: 480px) {
-            h1 {
-                font-size: 1.2rem; /* Noch kleinere Schriftgröße auf sehr kleinen Bildschirmen */
-            }
-
-            h2 {
-                font-size: 1rem; /* Noch kleinere Schriftgröße auf sehr kleinen Bildschirmen */
+            input[type="text"], input[type="file"], button {
+                font-size: 14px;
             }
         }
     </style>
@@ -176,11 +162,10 @@
     <script>
         // Bei Seitenladeereignis das Formular und den Fortschritt zurücksetzen
         window.onload = function() {
-            document.getElementById("mailProcessorForm").reset(); // Setzt alle Formularfelder zurück
-            $('#progressBar').css('width', '0%').attr('aria-valuenow', 0).text('0%'); // Setzt den Fortschritt zurück
-            $('#statusMessages').empty(); // Setzt die Statusmeldungen zurück
+            document.getElementById("mailProcessorForm").reset();
+            $('#progressBar').css('width', '0%').attr('aria-valuenow', 0).text('0%');
+            $('#statusMessages').empty();
 
-            // Sende eine API-Anfrage zum Löschen des Fortschritts und der Statusmeldungen auf dem Server
             $.post('/api/reset', function(data) {
                 console.log('Status und Fortschritt wurden zurückgesetzt.');
             }).fail(function() {
@@ -215,12 +200,11 @@
                     $('#progressBar').css('width', '0%').attr('aria-valuenow', 0).text('0%');
                     $('#statusMessages').empty(); // Statusmeldungen löschen
                 } else {
-                    setTimeout(checkCompletion, 1000);  // Wenn nicht abgeschlossen, wiederhole die Überprüfung
+                    setTimeout(checkCompletion, 1000);
                 }
             });
         }
 
-        // Fortschritt alle paar Sekunden aktualisieren
         setInterval(fetchStatusMessages, 500);
         setInterval(fetchProgress, 500);
 
