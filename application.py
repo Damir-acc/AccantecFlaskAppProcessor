@@ -320,30 +320,19 @@ def email_processing_thread(file_paths, sharepoint_site_url, list_name, access_t
             status_messages.append(f"E-Mail {progress}/{total_files} hochgeladen.")
             progress_percentage = int((progress / total_files) * 100)
 
-    with open(user_key_path, "r") as f:
-        private_key = open(user_key_path).read()
-    with lock:
-        status_messages.append(f"Private key before delete: {private_key}")
-
     clear_upload_folder()
 
-    with open(user_key_path, "r") as f:
-        private_key = open(user_key_path).read()
-    with lock:
-        status_messages.append(f"Private key after delete: {private_key}")
-    
     # Kopieren abgeschlossen oder abgebrochen
+    
     with lock:
         emails_completed = True
 
 def clear_upload_folder():
     for filename in os.listdir(app.config['UPLOAD_FOLDER']):
-        status_messages.append(f'Löschen der Datei {filename}')
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         try:
             if os.path.isfile(file_path) or os.path.islink(file_path):
                 os.unlink(file_path)  # Datei oder symbolischen Link löschen
-                status_messages.append(f'Gelöscht der Datei {filename}')
             elif os.path.isdir(file_path):
                 shutil.rmtree(file_path)  # Ordner und dessen Inhalt löschen
         except Exception as e:
