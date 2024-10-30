@@ -91,8 +91,9 @@ abort_flag = False
 lock = threading.Lock()  # Lock für thread-sichere Updates
 emails_completed = False  # Neue Variable, um den Abschluss zu verfolgen
 
+UPLOAD_FOLDER = 'uploads'
 # Erstelle das Upload-Verzeichnis, wenn es nicht existiert
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)  # Erstellt den Ordner, falls er nicht existiert
 
 def get_access_token():
     # Holen Sie ein Access-Token für die Microsoft Graph API
@@ -323,6 +324,18 @@ def email_processing_thread(file_paths, sharepoint_site_url, list_name, access_t
     # Kopieren abgeschlossen oder abgebrochen
     with lock:
         emails_completed = True
+
+def clear_upload_folder():
+    for filename in os.listdir(UPLOAD_FOLDER):
+        file_path = os.path.join(UPLOAD_FOLDER, filename)
+        try:
+            if os.path.isfile(file_path) or os.path.islink(file_path):
+                os.unlink(file_path)  # Datei oder symbolischen Link löschen
+            elif os.path.isdir(file_path):
+                shutil.rmtree(file_path)  # Ordner und dessen Inhalt löschen
+        except Exception as e:
+            with lock:
+                status_messages.append(f'Fehler beim Löschen der Datei {file_path}: {e}')
     
 
 @app.route('/', methods=['GET', 'POST'])
