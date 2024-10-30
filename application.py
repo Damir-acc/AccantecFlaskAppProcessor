@@ -9,7 +9,6 @@ from office365.sharepoint.client_context import ClientContext
 from werkzeug.utils import secure_filename
 import zipfile
 import threading
-import time
 import identity.web
 import requests
 
@@ -323,7 +322,7 @@ def email_processing_thread(file_paths, sharepoint_site_url, list_name, access_t
     clear_upload_folder()
 
     # Kopieren abgeschlossen oder abgebrochen
-    
+
     with lock:
         emails_completed = True
 
