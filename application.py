@@ -383,9 +383,12 @@ def format_key_to_pem(public_key_string):
     pem_header = "-----BEGIN PUBLIC KEY-----\n"
     pem_footer = "-----END PUBLIC KEY-----\n"
 
-    # Formatieren des Public Keys in das PEM-Format
+ # Formatieren des Public Keys in das PEM-Format
+    # Entferne eventuelle Whitespaces oder Zeilenumbrüche
+    clean_key = public_key_string.strip()
+    
     # Aufteilen des Keys in 64 Zeichen lange Zeilen
-    formatted_key = "\n".join([public_key_string[i:i+64] for i in range(0, len(public_key_string), 64)])
+    formatted_key = "\n".join([clean_key[i:i + 64] for i in range(0, len(clean_key), 64)])
     
     return pem_header + formatted_key + pem_footer
     
