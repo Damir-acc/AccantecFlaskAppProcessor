@@ -134,7 +134,7 @@ def get_user_key_from_vault(key_name):
         secret_client = SecretClient(vault_url=app.config["KEY_VAULT_URL"], credential=credential)
         
         # Abrufen des Schlüssels (Key)
-        secret  = secret_client.get_key(key_name)
+        secret  = secret_client.get_secret(key_name)
         return secret.value  # Gibt den Schlüssel als Objekt zurück
     except Exception as e:
         status_messages.append(f"Fehler beim Abrufen des Schlüssels: {e}")
