@@ -46,9 +46,9 @@ auth = identity.web.Auth(
  #   client_secret=client_secret,
  #   tenant_id=tenant_id
 #)
-credential = InteractiveBrowserCredential(tenant_id=tenant_id)
+#credential = InteractiveBrowserCredential(tenant_id=tenant_id)
 
-client = SecretClient(vault_url=key_vault_url, credential=credential)
+#client = SecretClient(vault_url=key_vault_url, credential=access_token)
 
 # Authentifizierung
 #credential = DefaultAzureCredential()
@@ -124,7 +124,13 @@ def get_access_token():
 def get_user_key_from_vault(secret_name):
     global status_messages, lock
     try:
-        secret = client.get_secret(secret_name)
+        # Holen Sie ein Access-Token für den Key Vault
+        access_token = get_access_token()  # Token für den Zugriff auf den Key Vault
+        
+        # Verwenden Sie den SecretClient mit dem Token
+        secret_client = SecretClient(vault_url=app.config["KEY_VAULT_URL"], credential=access_token)
+        
+        secret = secret_client.get_secret(secret_name)
         return secret.value  # Der Schlüssel wird als String zurückgegeben
     except Exception as e:
         with lock:

@@ -20,7 +20,7 @@ ENDPOINT_SHAREPOINT = 'https://accantec.sharepoint.com/.default'
 #EMAIL_SEND_ENDPOINT = 'https://graph.microsoft.com/v1.0/me/sendMail'
 
 # Scope for both user information and email sending permissions
-SCOPE = ["User.Read","Sites.ReadWrite.All","Sites.Manage.All"]
+SCOPE = ["User.Read","Secrets.Get"]
 
 # Tells the Flask-session extension to store sessions in the filesystem
 SESSION_TYPE = "filesystem"
