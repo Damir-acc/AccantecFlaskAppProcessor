@@ -12,7 +12,7 @@ import threading
 import identity.web
 import requests
 
-from azure.identity import DefaultAzureCredential, ClientSecretCredential
+from azure.identity import DefaultAzureCredential, ClientSecretCredential, InteractiveBrowserCredential
 from azure.keyvault.secrets import SecretClient
 
 import application_config
@@ -41,11 +41,12 @@ auth = identity.web.Auth(
 )
 
 # Erstelle einen SecretClient zum Abrufen der Geheimnisse
-credential = ClientSecretCredential(
-    client_id=client_id,
-    client_secret=client_secret,
-    tenant_id=tenant_id
-)
+#credential = ClientSecretCredential(
+#    client_id=client_id,
+ #   client_secret=client_secret,
+ #   tenant_id=tenant_id
+#)
+credential = InteractiveBrowserCredential()
 
 client = SecretClient(vault_url=key_vault_url, credential=credential)
 
