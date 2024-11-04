@@ -9,6 +9,7 @@ CLIENT_SECRET = os.getenv("CLIENT_SECRET")
 TENANT_ID = os.getenv("TENANT_ID")
 
 THUMBPRINT = os.getenv("THUMBPRINT")
+KEY_VAULT_URL = os.getenv('KEY_VAULT_URL')
  
 REDIRECT_PATH = "/auth"  # Used for forming an absolute URL to your redirect URI.
 

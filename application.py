@@ -12,7 +12,7 @@ import threading
 import identity.web
 import requests
 
-from azure.identity import DefaultAzureCredential
+from azure.identity import DefaultAzureCredential, ClientSecretCredential
 from azure.keyvault.secrets import SecretClient
 
 import application_config
@@ -29,6 +29,7 @@ client_id=app.config["CLIENT_ID"]
 tenant_id=app.config["TENANT_ID"]
 client_secret=app.config["CLIENT_SECRET"]
 authority=app.config["AUTHORITY"]
+key_vault_url = app.config["KEY_VAULT_URL"]
 scope="https://accantec.sharepoint.com/.default"
 
 app.jinja_env.globals.update(Auth=identity.web.Auth)  # Useful in template for B2C
@@ -39,12 +40,20 @@ auth = identity.web.Auth(
     client_credential=app.config["CLIENT_SECRET"],
 )
 
-# Stelle sicher, dass die URL deines Key Vaults in den Umgebungsvariablen gespeichert ist
-KEY_VAULT_URL = os.getenv('KEY_VAULT_URL')
-
 # Erstelle einen SecretClient zum Abrufen der Geheimnisse
+#credential = ClientSecretCredential(
+#    client_id=client_id,
+ #   client_secret=client_secret,
+ #   tenant_id=tenant_id
+#)
+
+#client = SecretClient(vault_url=key_vault_url, credential=credential)
+
+# Authentifizierung
 credential = DefaultAzureCredential()
-client = SecretClient(vault_url=KEY_VAULT_URL, credential=credential)
+
+# Secret Client
+client = SecretClient(vault_url=key_vault_url, credential=credential)
 
 @app.route(application_config.REDIRECT_PATH)
 def auth_response():
@@ -373,7 +382,7 @@ def upload_files():
         with lock:
             abort_flag = False  # Reset des Abbruch-Flags bei POST-Start
 
-        user_key_test = get_user_key_from_vault('user-key')  # Nutze den Namen des Geheimnisses im Key Vault
+        user_key_test = get_user_key_from_vault('key-easyreceive')  # Nutze den Namen des Geheimnisses im Key Vault
         with lock:
             status_messages.append(f'User-Key: {user_key_test}')
 
