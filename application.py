@@ -13,7 +13,7 @@ import identity.web
 import requests
 
 from azure.identity import DefaultAzureCredential, ClientSecretCredential, InteractiveBrowserCredential
-from azure.keyvault.keys import KeyClient
+from azure.keyvault.secrets import SecretClient
 import application_config
 
 app = Flask(__name__)
@@ -131,11 +131,11 @@ def get_user_key_from_vault(key_name):
         )
         
         # Erstelle den KeyClient mit der URL des Key Vaults
-        key_client = KeyClient(vault_url=app.config["KEY_VAULT_URL"], credential=credential)
+        secret_client = SecretClient(vault_url=app.config["KEY_VAULT_URL"], credential=credential)
         
         # Abrufen des Schlüssels (Key)
-        key = key_client.get_key(key_name)
-        return key.key  # Gibt den Schlüssel als Objekt zurück
+        secret  = secret_client.get_key(key_name)
+        return secret.value  # Gibt den Schlüssel als Objekt zurück
     except Exception as e:
         status_messages.append(f"Fehler beim Abrufen des Schlüssels: {e}")
         return None
