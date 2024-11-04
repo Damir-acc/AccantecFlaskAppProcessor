@@ -46,7 +46,7 @@ auth = identity.web.Auth(
  #   client_secret=client_secret,
  #   tenant_id=tenant_id
 #)
-credential = InteractiveBrowserCredential()
+credential = InteractiveBrowserCredential(tenant_id=tenant_id)
 
 client = SecretClient(vault_url=key_vault_url, credential=credential)
 
