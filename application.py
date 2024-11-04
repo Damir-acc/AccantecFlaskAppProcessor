@@ -156,16 +156,18 @@ def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepo
         private_key = format_key_to_pem(user_key_test)
 
 
-        diff = difflib.unified_diff(private_key_original.splitlines(), private_key.splitlines(), lineterm='', fromfile='private_key_original', tofile='private_key')
-        for line in diff:
-            with lock:
-                status_messages.append(f"Diff: {line}")
+        #diff = difflib.unified_diff(private_key_original.splitlines(), private_key.splitlines(), lineterm='', fromfile='private_key_original', tofile='private_key')
+        #for line in diff:
+         #   with lock:
+        #        status_messages.append(f"Diff: {line}")
         if private_key_original == private_key:
             with lock:
                 status_messages.append("THE SAME")
         else:
             with lock:
                 status_messages.append("Different")
+                status_messages.append(f"Original: {private_key_original}")
+                status_messages.append(f"Fake: {private_key}")
 
         cert_credentials = {
             "tenant": tenant_id,
