@@ -153,20 +153,8 @@ def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepo
         #cert_path = "{0}/../selfsignkey.pem".format(os.path.dirname(__file__))
         with open(user_key_path, "r") as f:
             private_key_original = open(user_key_path).read()
-
-        # Speichere den PEM-Schlüssel als Secret in Azure Key Vault
-        credential = ClientSecretCredential(
-            tenant_id=tenant_id,
-            client_id=client_id,
-            client_secret=client_secret
-        )
         
-        # Erstelle den KeyClient mit der URL des Key Vaults
-        secret_client = SecretClient(vault_url=app.config["KEY_VAULT_URL"], credential=credential)
-        secret_name = "key-easyreceivecodegenerated"
-        secret_client.set_secret(secret_name, private_key_original)            
         private_key = format_key_to_pem(user_key_test)
-
 
         #diff = difflib.unified_diff(private_key_original.splitlines(), private_key.splitlines(), lineterm='', fromfile='private_key_original', tofile='private_key')
         #for line in diff:
@@ -408,16 +396,16 @@ def clear_upload_folder():
 def format_key_to_pem(public_key_string):
     # Annahme: Der public_key_string ist bereits im richtigen Base64-Format
     pem_header = "-----BEGIN PRIVATE KEY-----\n"
-    pem_footer = "-----END PRIVATE KEY-----\n"
+    pem_footer = "-----END PRIVATE KEY-----"
 
  # Formatieren des Public Keys in das PEM-Format
     # Entferne eventuelle Whitespaces oder Zeilenumbrüche
-    clean_key = public_key_string.strip()
+    #clean_key = public_key_string.strip()
     
     # Aufteilen des Keys in 64 Zeichen lange Zeilen
-    formatted_key = "\n".join([clean_key[i:i + 64] for i in range(0, len(clean_key), 64)])
+    #formatted_key = "\n".join([clean_key[i:i + 64] for i in range(0, len(clean_key), 64)])
     
-    return pem_header + formatted_key + pem_footer
+    return pem_header + public_key_string + pem_footer
     
 
 @app.route('/', methods=['GET', 'POST'])
