@@ -14,6 +14,7 @@ import requests
 
 from azure.identity import DefaultAzureCredential, ClientSecretCredential, InteractiveBrowserCredential
 from azure.keyvault.secrets import SecretClient
+from azure.core.credentials import TokenCredential
 
 import application_config
 
@@ -121,14 +122,26 @@ def get_access_token():
     
     return token_response['access_token']
 
+def get_access_token_vaultKey():
+    # Azure Key Vault-Scope anstelle von Graph API/SharePoint-Scope
+    scope = ["https://vault.azure.net/.default"]
+    
+    token_response = auth.get_token_for_user(scope)
+    if "error" in token_response:
+        raise Exception("Error getting access token: {}".format(token_response.get("error")))
+    
+    return token_response['access_token']
+
 def get_user_key_from_vault(secret_name):
     global status_messages, lock
     try:
         # Holen Sie ein Access-Token für den Key Vault
-        access_token = get_access_token()  # Token für den Zugriff auf den Key Vault
+        access_token_vault = get_access_token_vaultKey()  # Token für den Zugriff auf den Key Vault
         
         # Verwenden Sie den SecretClient mit dem Token
-        secret_client = SecretClient(vault_url=app.config["KEY_VAULT_URL"], credential=access_token)
+        #credential = MyTokenCredential(access_token)
+        #client = SecretClient(vault_url=key_vault_url, credential=credential)
+        secret_client = SecretClient(vault_url=app.config["KEY_VAULT_URL"], credential=access_token_vault)
         
         secret = secret_client.get_secret(secret_name)
         return secret.value  # Der Schlüssel wird als String zurückgegeben
