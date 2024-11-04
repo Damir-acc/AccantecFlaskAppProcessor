@@ -12,6 +12,9 @@ import threading
 import identity.web
 import requests
 
+from azure.identity import DefaultAzureCredential
+from azure.keyvault.secrets import SecretClient
+
 import application_config
 
 app = Flask(__name__)
@@ -35,6 +38,13 @@ auth = identity.web.Auth(
     client_id=app.config["CLIENT_ID"],
     client_credential=app.config["CLIENT_SECRET"],
 )
+
+# Stelle sicher, dass die URL deines Key Vaults in den Umgebungsvariablen gespeichert ist
+KEY_VAULT_URL = os.getenv('KEY_VAULT_URL')
+
+# Erstelle einen SecretClient zum Abrufen der Geheimnisse
+credential = DefaultAzureCredential()
+client = SecretClient(vault_url=KEY_VAULT_URL, credential=credential)
 
 @app.route(application_config.REDIRECT_PATH)
 def auth_response():
@@ -100,6 +110,14 @@ def get_access_token():
         raise Exception("Error getting access token: {}".format(token_response.get("error")))
     
     return token_response['access_token']
+
+def get_user_key_from_vault(secret_name):
+    try:
+        secret = client.get_secret(secret_name)
+        return secret.value  # Der Schlüssel wird als String zurückgegeben
+    except Exception as e:
+        print(f"Fehler beim Abrufen des Schlüssels: {e}")
+        return None
 
 def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepoint_site_url, list_name, access_token, user_key_path):
     global lock, status_messages
@@ -341,7 +359,7 @@ def clear_upload_folder():
 
 @app.route('/', methods=['GET', 'POST'])
 def upload_files():
-    global progress,progress_percentage, abort_flag, emails_completed, status_messages
+    global progress,progress_percentage, abort_flag, emails_completed, status_messages, lock
     # Fortschritt und Statusmeldungen beim Neuladen der Seite zurücksetzen
     if request.method == 'GET':
         with lock:  # Thread-Safe Zurücksetzen
@@ -354,6 +372,10 @@ def upload_files():
         # Setze abort_flag zurück, bevor ein neuer Upload-Prozess gestartet wird
         with lock:
             abort_flag = False  # Reset des Abbruch-Flags bei POST-Start
+
+        user_key_test = get_user_key_from_vault('user-key')  # Nutze den Namen des Geheimnisses im Key Vault
+        with lock:
+            status_messages.append(f'User-Key: {user_key_test}')
 
         user_key = request.files['user_key']
         user_key_path = os.path.join(app.config['UPLOAD_FOLDER'], user_key.filename)

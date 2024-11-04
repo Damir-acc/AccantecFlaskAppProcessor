@@ -8,3 +8,7 @@ extract-msg==0.28.7
 requests>=2,<3
 identity>=0.5.1,<0.6
 msal==1.21.0
+
+# Azure Key Vault Integration
+azure-identity>=1.12.0
+azure-keyvault-secrets>=4.6.0
