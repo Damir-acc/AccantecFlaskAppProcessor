@@ -121,11 +121,13 @@ def get_access_token():
     return token_response['access_token']
 
 def get_user_key_from_vault(secret_name):
+    global status_messages, lock
     try:
         secret = client.get_secret(secret_name)
         return secret.value  # Der Schlüssel wird als String zurückgegeben
     except Exception as e:
-        print(f"Fehler beim Abrufen des Schlüssels: {e}")
+        with lock:
+            status_messages.append(f"Fehler beim Abrufen des Schlüssels: {e}")
         return None
 
 def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepoint_site_url, list_name, access_token, user_key_path):
