@@ -393,8 +393,8 @@ def clear_upload_folder():
 
 def format_key_to_pem(public_key_string):
     # Annahme: Der public_key_string ist bereits im richtigen Base64-Format
-    pem_header = "-----BEGIN PUBLIC KEY-----\n"
-    pem_footer = "-----END PUBLIC KEY-----\n"
+    pem_header = "-----BEGIN PRIVATE KEY-----\n"
+    pem_footer = "-----END PRIVATE KEY-----\n"
 
  # Formatieren des Public Keys in das PEM-Format
     # Entferne eventuelle Whitespaces oder Zeilenumbrüche
