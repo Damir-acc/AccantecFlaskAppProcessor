@@ -377,6 +377,17 @@ def clear_upload_folder():
         except Exception as e:
             with lock:
                 status_messages.append(f'Fehler beim Löschen der Datei {file_path}: {e}')
+
+def format_key_to_pem(public_key_string):
+    # Annahme: Der public_key_string ist bereits im richtigen Base64-Format
+    pem_header = "-----BEGIN PUBLIC KEY-----\n"
+    pem_footer = "-----END PUBLIC KEY-----\n"
+
+    # Formatieren des Public Keys in das PEM-Format
+    # Aufteilen des Keys in 64 Zeichen lange Zeilen
+    formatted_key = "\n".join([public_key_string[i:i+64] for i in range(0, len(public_key_string), 64)])
+    
+    return pem_header + formatted_key + pem_footer
     
 
 @app.route('/', methods=['GET', 'POST'])
@@ -395,7 +406,8 @@ def upload_files():
         with lock:
             abort_flag = False  # Reset des Abbruch-Flags bei POST-Start
 
-        user_key_test = get_user_key_from_vault('key-easyreceive')  # Nutze den Namen des Geheimnisses im Key Vault
+        user_key_test = get_user_key_from_vault('key-easyreceivepem')  # Nutze den Namen des Geheimnisses im Key Vault
+        user_key_test=format_key_to_pem(user_key_test)
         with lock:
             status_messages.append(f'User-Key: {user_key_test}')
 
