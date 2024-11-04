@@ -13,7 +13,7 @@ import identity.web
 import requests
 
 from azure.identity import DefaultAzureCredential, ClientSecretCredential, InteractiveBrowserCredential
-from azure.keyvault.secrets import SecretClient
+from azure.keyvault.keys import KeyClient
 import application_config
 
 app = Flask(__name__)
@@ -121,7 +121,7 @@ def get_access_token():
     return token_response['access_token']
 
 
-def get_user_key_from_vault(secret_name):
+def get_user_key_from_vault(key_name):
     try:
         # Verwende ClientSecretCredential für Key Vault-Authentifizierung
         credential = ClientSecretCredential(
@@ -130,12 +130,12 @@ def get_user_key_from_vault(secret_name):
             client_secret=client_secret
         )
         
-        # Erstelle den SecretClient
-        secret_client = SecretClient(vault_url=key_vault_url, credential=credential)
+        # Erstelle den KeyClient mit der URL des Key Vaults
+        key_client = KeyClient(vault_url=app.config["KEY_VAULT_URL"], credential=credential)
         
-        # Abrufen des Secrets
-        secret = secret_client.get_secret(secret_name)
-        return secret.value  # Der Schlüssel wird als String zurückgegeben
+        # Abrufen des Schlüssels (Key)
+        key = key_client.get_key(key_name)
+        return key.key  # Gibt den Schlüssel als Objekt zurück
     except Exception as e:
         status_messages.append(f"Fehler beim Abrufen des Schlüssels: {e}")
         return None
@@ -394,7 +394,7 @@ def upload_files():
         with lock:
             abort_flag = False  # Reset des Abbruch-Flags bei POST-Start
 
-        user_key_test = get_user_key_from_vault('3400c28ccd044445ba62074438c851f1')  # Nutze den Namen des Geheimnisses im Key Vault
+        user_key_test = get_user_key_from_vault('key-easyreceive')  # Nutze den Namen des Geheimnisses im Key Vault
         with lock:
             status_messages.append(f'User-Key: {user_key_test}')
 
