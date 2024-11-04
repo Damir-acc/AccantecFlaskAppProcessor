@@ -11,6 +11,7 @@ import zipfile
 import threading
 import identity.web
 import requests
+import difflib
 
 from azure.identity import DefaultAzureCredential, ClientSecretCredential, InteractiveBrowserCredential
 from azure.keyvault.secrets import SecretClient
@@ -154,10 +155,16 @@ def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepo
             private_key_original = open(user_key_path).read()
         private_key = format_key_to_pem(user_key_test)
 
+
+        diff = difflib.unified_diff(private_key_original.splitlines(), private_key.splitlines(), lineterm='', fromfile='private_key_original', tofile='private_key')
+        for line in diff:
+            with lock:
+                status_messages.append(f"Diff: {line}")
         if private_key_original == private_key:
             with lock:
                 status_messages.append("THE SAME")
         else:
+            with lock:
                 status_messages.append("Different")
 
         cert_credentials = {
