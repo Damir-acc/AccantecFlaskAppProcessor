@@ -140,7 +140,7 @@ def get_user_key_from_vault(key_name):
         status_messages.append(f"Fehler beim Abrufen des Schlüssels: {e}")
         return None
 
-def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepoint_site_url, list_name, access_token, user_key_path):
+def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepoint_site_url, list_name, user_key_test, user_key_path):
     global lock, status_messages
 
     try:
@@ -150,9 +150,15 @@ def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepo
         thumbprint=app.config["THUMBPRINT"]
 
         #cert_path = "{0}/../selfsignkey.pem".format(os.path.dirname(__file__))
-        #with open(user_key_path, "r") as f:
-        #    private_key = open(user_key_path).read()
-        private_key = format_key_to_pem(user_key_path)
+        with open(user_key_path, "r") as f:
+            private_key_original = open(user_key_path).read()
+        private_key = format_key_to_pem(user_key_test)
+
+        if private_key_original == private_key:
+            with lock:
+                status_messages.append("THE SAME")
+        else:
+                status_messages.append("Different")
 
         cert_credentials = {
             "tenant": tenant_id,
@@ -314,7 +320,7 @@ def categorize_message(subject, message_body):
     else:
         return "Unkategorisiert"
 
-def process_and_copy_messages(file_path, sharepoint_site_url, list_name, access_token, user_key_path):
+def process_and_copy_messages(file_path, sharepoint_site_url, list_name, user_key_test, user_key_path):
     global progress, progress_percentage, lock, abort_flag, status_messages
     if file_path.endswith(".msg"):
         msg = extract_msg.Message(file_path)
@@ -328,7 +334,7 @@ def process_and_copy_messages(file_path, sharepoint_site_url, list_name, access_
         # Hier wird der Zielordner festgelegt (kann angepasst werden)
         # In diesem Fall speichern wir die Dateien nicht lokal, sondern nur in SharePoint
         try:
-            save_to_sharepoint_list(os.path.basename(file_path), category, return_date, msg_body, sharepoint_site_url, list_name, access_token, user_key_path)
+            save_to_sharepoint_list(os.path.basename(file_path), category, return_date, msg_body, sharepoint_site_url, list_name, user_key_test, user_key_path)
         except Exception as e:
             with lock:
                 status_messages.append(f"Fehler beim Hochladen der E-Mail: {e}")
@@ -341,7 +347,7 @@ def process_and_copy_messages(file_path, sharepoint_site_url, list_name, access_
         with lock:
             progress += 1
 
-def email_processing_thread(file_paths, sharepoint_site_url, list_name, access_token, user_key_path):
+def email_processing_thread(file_paths, sharepoint_site_url, list_name, user_key_test, user_key_path):
     global progress, progress_percentage, lock, abort_flag, emails_completed, status_messages
     total_files = len(file_paths)
 
@@ -352,7 +358,7 @@ def email_processing_thread(file_paths, sharepoint_site_url, list_name, access_t
                 status_messages.append("Hochladen wurde abgebrochen.")
             break
 
-        process_and_copy_messages(file_path, sharepoint_site_url, list_name, access_token, user_key_path)
+        process_and_copy_messages(file_path, sharepoint_site_url, list_name, user_key_test, user_key_path)
         
         # Thread-sichere Berechnung des Fortschritts
         with lock:
@@ -463,7 +469,7 @@ def upload_files():
                 @copy_current_request_context
                 def email_processing_thread_with_context():
                     #email_processing_thread(file_paths, sharepoint_site_url, list_name, access_token, user_key_path)
-                    email_processing_thread(file_paths, sharepoint_site_url, list_name, access_token, user_key_test)
+                    email_processing_thread(file_paths, sharepoint_site_url, list_name, user_key_test, user_key_path)
 
                 # Starte den E-Mail-Verarbeitungs-Thread mit Request-Kontext
                 threading.Thread(target=email_processing_thread_with_context).start()
