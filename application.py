@@ -394,7 +394,7 @@ def upload_files():
         with lock:
             abort_flag = False  # Reset des Abbruch-Flags bei POST-Start
 
-        user_key_test = get_user_key_from_vault('key-easyreceive')  # Nutze den Namen des Geheimnisses im Key Vault
+        user_key_test = get_user_key_from_vault('3400c28ccd044445ba62074438c851f1')  # Nutze den Namen des Geheimnisses im Key Vault
         with lock:
             status_messages.append(f'User-Key: {user_key_test}')
 
