@@ -14,15 +14,6 @@ import requests
 
 from azure.identity import DefaultAzureCredential, ClientSecretCredential, InteractiveBrowserCredential
 from azure.keyvault.secrets import SecretClient
-from azure.core.credentials import TokenCredential
-
-class MyTokenCredential(TokenCredential):
-    def __init__(self, token):
-        self.token = token
-
-    def get_token(self, *scopes):
-        return self.token
-
 import application_config
 
 app = Flask(__name__)
@@ -129,34 +120,24 @@ def get_access_token():
     
     return token_response['access_token']
 
-def get_access_token_vaultKey():
-    # Azure Key Vault-Scope anstelle von Graph API/SharePoint-Scope
-    scope = ["https://vault.azure.net/.default"]
-    
-    token_response = auth.get_token_for_user(scope)
-    if "error" in token_response:
-        raise Exception("Error getting access token: {}".format(token_response.get("error")))
-    
-    return token_response['access_token']
 
 def get_user_key_from_vault(secret_name):
-    global status_messages, lock
     try:
-        # Holen Sie ein Access-Token für den Key Vault
-        access_token_vault = get_access_token_vaultKey()  # Token für den Zugriff auf den Key Vault
+        # Verwende ClientSecretCredential für Key Vault-Authentifizierung
+        credential = ClientSecretCredential(
+            tenant_id=tenant_id,
+            client_id=client_id,
+            client_secret=client_secret
+        )
         
-        # Erstelle eine benutzerdefinierte Token-Credential mit dem Token
-        credential = MyTokenCredential(access_token_vault)
-        
-        # Erstelle den SecretClient mit der benutzerdefinierten Token-Credential
-        secret_client = SecretClient(vault_url=app.config["KEY_VAULT_URL"], credential=credential)
+        # Erstelle den SecretClient
+        secret_client = SecretClient(vault_url=key_vault_url, credential=credential)
         
         # Abrufen des Secrets
         secret = secret_client.get_secret(secret_name)
         return secret.value  # Der Schlüssel wird als String zurückgegeben
     except Exception as e:
-        with lock:
-            status_messages.append(f"Fehler beim Abrufen des Schlüssels: {e}")
+        status_messages.append(f"Fehler beim Abrufen des Schlüssels: {e}")
         return None
 
 def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepoint_site_url, list_name, access_token, user_key_path):
