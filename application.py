@@ -41,19 +41,19 @@ auth = identity.web.Auth(
 )
 
 # Erstelle einen SecretClient zum Abrufen der Geheimnisse
-#credential = ClientSecretCredential(
-#    client_id=client_id,
- #   client_secret=client_secret,
- #   tenant_id=tenant_id
-#)
+credential = ClientSecretCredential(
+    client_id=client_id,
+    client_secret=client_secret,
+    tenant_id=tenant_id
+)
 
-#client = SecretClient(vault_url=key_vault_url, credential=credential)
+client = SecretClient(vault_url=key_vault_url, credential=credential)
 
 # Authentifizierung
-credential = DefaultAzureCredential()
+#credential = DefaultAzureCredential()
 
 # Secret Client
-client = SecretClient(vault_url=key_vault_url, credential=credential)
+#client = SecretClient(vault_url=key_vault_url, credential=credential)
 
 @app.route(application_config.REDIRECT_PATH)
 def auth_response():
