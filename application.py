@@ -152,7 +152,7 @@ def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepo
         #cert_path = "{0}/../selfsignkey.pem".format(os.path.dirname(__file__))
         #with open(user_key_path, "r") as f:
         #    private_key = open(user_key_path).read()
-        private_key = user_key_path
+        private_key = format_key_to_pem(user_key_path)
 
         cert_credentials = {
             "tenant": tenant_id,
@@ -407,7 +407,7 @@ def upload_files():
             abort_flag = False  # Reset des Abbruch-Flags bei POST-Start
 
         user_key_test = get_user_key_from_vault('key-easyreceivepem')  # Nutze den Namen des Geheimnisses im Key Vault
-        user_key_test=format_key_to_pem(user_key_test)
+        #user_key_test = format_key_to_pem(user_key_test)
         with lock:
             status_messages.append(f'User-Key: {user_key_test}')
 
