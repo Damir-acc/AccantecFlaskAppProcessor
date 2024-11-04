@@ -150,8 +150,9 @@ def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepo
         thumbprint=app.config["THUMBPRINT"]
 
         #cert_path = "{0}/../selfsignkey.pem".format(os.path.dirname(__file__))
-        with open(user_key_path, "r") as f:
-            private_key = open(user_key_path).read()
+        #with open(user_key_path, "r") as f:
+        #    private_key = open(user_key_path).read()
+        private_key = user_key_path
 
         cert_credentials = {
             "tenant": tenant_id,
@@ -446,7 +447,8 @@ def upload_files():
 
                 @copy_current_request_context
                 def email_processing_thread_with_context():
-                    email_processing_thread(file_paths, sharepoint_site_url, list_name, access_token, user_key_path)
+                    #email_processing_thread(file_paths, sharepoint_site_url, list_name, access_token, user_key_path)
+                    email_processing_thread(file_paths, sharepoint_site_url, list_name, access_token, user_key_test)
 
                 # Starte den E-Mail-Verarbeitungs-Thread mit Request-Kontext
                 threading.Thread(target=email_processing_thread_with_context).start()
