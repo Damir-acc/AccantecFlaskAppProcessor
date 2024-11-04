@@ -16,6 +16,13 @@ from azure.identity import DefaultAzureCredential, ClientSecretCredential, Inter
 from azure.keyvault.secrets import SecretClient
 from azure.core.credentials import TokenCredential
 
+class MyTokenCredential(TokenCredential):
+    def __init__(self, token):
+        self.token = token
+
+    def get_token(self, *scopes):
+        return self.token
+
 import application_config
 
 app = Flask(__name__)
@@ -138,11 +145,13 @@ def get_user_key_from_vault(secret_name):
         # Holen Sie ein Access-Token für den Key Vault
         access_token_vault = get_access_token_vaultKey()  # Token für den Zugriff auf den Key Vault
         
-        # Verwenden Sie den SecretClient mit dem Token
-        #credential = MyTokenCredential(access_token)
-        #client = SecretClient(vault_url=key_vault_url, credential=credential)
-        secret_client = SecretClient(vault_url=app.config["KEY_VAULT_URL"], credential=access_token_vault)
+        # Erstelle eine benutzerdefinierte Token-Credential mit dem Token
+        credential = MyTokenCredential(access_token_vault)
         
+        # Erstelle den SecretClient mit der benutzerdefinierten Token-Credential
+        secret_client = SecretClient(vault_url=app.config["KEY_VAULT_URL"], credential=credential)
+        
+        # Abrufen des Secrets
         secret = secret_client.get_secret(secret_name)
         return secret.value  # Der Schlüssel wird als String zurückgegeben
     except Exception as e:
