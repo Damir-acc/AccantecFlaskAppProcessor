@@ -346,6 +346,8 @@ def email_processing_thread(file_paths, sharepoint_site_url, list_name, user_key
         progress = 0
         progress_percentage = 0
         status_messages= []
+        emails_completed = False
+        abort_flag = False
 
     for file_path in file_paths:
         # Abbruchprüfung
