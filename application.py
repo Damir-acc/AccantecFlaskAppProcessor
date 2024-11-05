@@ -360,9 +360,7 @@ def email_processing_thread(file_paths, sharepoint_site_url, list_name, user_key
     clear_upload_folder()
 
     # Kopieren abgeschlossen oder abgebrochen
-
-    with lock:
-        emails_completed = True
+    emails_completed = True
 
 def clear_upload_folder():
     for filename in os.listdir(app.config['UPLOAD_FOLDER']):
@@ -394,16 +392,15 @@ def upload_files():
             status_messages= []
             abort_flag = False  # Reset des Abbruch-Flags
             emails_completed = False
+
+        clear_upload_folder()
+
     if request.method == 'POST':
         # Setze abort_flag zurück, bevor ein neuer Upload-Prozess gestartet wird
         with lock:
             abort_flag = False  # Reset des Abbruch-Flags bei POST-Start
 
         user_key = get_user_key_from_vault('key-easyreceivepem')  # Nutze den Namen des Geheimnisses im Key Vault
-
-        #user_key = request.files['user_key']
-        #user_key_path = os.path.join(app.config['UPLOAD_FOLDER'], user_key.filename)
-        #user_key.save(user_key_path)
 
         # Überprüfe, ob die Datei im Request vorhanden ist
         if 'file' not in request.files:
