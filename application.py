@@ -141,7 +141,7 @@ def get_user_key_from_vault(key_name):
         status_messages.append(f"Fehler beim Abrufen des Schlüssels: {e}")
         return None
 
-def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepoint_site_url, list_name, user_key_test, user_key_path):
+def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepoint_site_url, list_name, user_key):
     global lock, status_messages
 
     try:
@@ -149,25 +149,8 @@ def save_to_sharepoint_list(file_name, category, return_date, text_body, sharepo
         client_id=app.config["CLIENT_ID"]
         tenant_id=app.config["TENANT_ID"]
         thumbprint=app.config["THUMBPRINT"]
-
-        #cert_path = "{0}/../selfsignkey.pem".format(os.path.dirname(__file__))
-        with open(user_key_path, "r") as f:
-            private_key_original = open(user_key_path).read()
         
-        private_key = format_key_to_pem(user_key_test)
-
-        #diff = difflib.unified_diff(private_key_original.splitlines(), private_key.splitlines(), lineterm='', fromfile='private_key_original', tofile='private_key')
-        #for line in diff:
-         #   with lock:
-        #        status_messages.append(f"Diff: {line}")
-        if private_key_original == private_key:
-            with lock:
-                status_messages.append("THE SAME")
-        else:
-            with lock:
-                status_messages.append("Different")
-                status_messages.append(f"Original: {private_key_original}")
-                status_messages.append(f"Fake: {private_key}")
+        private_key = format_key_to_pem(user_key)
 
         cert_credentials = {
             "tenant": tenant_id,
@@ -329,7 +312,7 @@ def categorize_message(subject, message_body):
     else:
         return "Unkategorisiert"
 
-def process_and_copy_messages(file_path, sharepoint_site_url, list_name, user_key_test, user_key_path):
+def process_and_copy_messages(file_path, sharepoint_site_url, list_name, user_key):
     global progress, progress_percentage, lock, abort_flag, status_messages
     if file_path.endswith(".msg"):
         msg = extract_msg.Message(file_path)
@@ -343,7 +326,7 @@ def process_and_copy_messages(file_path, sharepoint_site_url, list_name, user_ke
         # Hier wird der Zielordner festgelegt (kann angepasst werden)
         # In diesem Fall speichern wir die Dateien nicht lokal, sondern nur in SharePoint
         try:
-            save_to_sharepoint_list(os.path.basename(file_path), category, return_date, msg_body, sharepoint_site_url, list_name, user_key_test, user_key_path)
+            save_to_sharepoint_list(os.path.basename(file_path), category, return_date, msg_body, sharepoint_site_url, list_name, user_key)
         except Exception as e:
             with lock:
                 status_messages.append(f"Fehler beim Hochladen der E-Mail: {e}")
@@ -356,7 +339,7 @@ def process_and_copy_messages(file_path, sharepoint_site_url, list_name, user_ke
         with lock:
             progress += 1
 
-def email_processing_thread(file_paths, sharepoint_site_url, list_name, user_key_test, user_key_path):
+def email_processing_thread(file_paths, sharepoint_site_url, list_name, user_key):
     global progress, progress_percentage, lock, abort_flag, emails_completed, status_messages
     total_files = len(file_paths)
 
@@ -367,7 +350,7 @@ def email_processing_thread(file_paths, sharepoint_site_url, list_name, user_key
                 status_messages.append("Hochladen wurde abgebrochen.")
             break
 
-        process_and_copy_messages(file_path, sharepoint_site_url, list_name, user_key_test, user_key_path)
+        process_and_copy_messages(file_path, sharepoint_site_url, list_name, user_key)
         
         # Thread-sichere Berechnung des Fortschritts
         with lock:
@@ -396,15 +379,7 @@ def clear_upload_folder():
 def format_key_to_pem(public_key_string):
     # Annahme: Der public_key_string ist bereits im richtigen Base64-Format
     pem_header = "-----BEGIN PRIVATE KEY-----\n"
-    pem_footer = "\n-----END PRIVATE KEY-----"
-
- # Formatieren des Public Keys in das PEM-Format
-    # Entferne eventuelle Whitespaces oder Zeilenumbrüche
-    #clean_key = public_key_string.strip()
-    
-    # Aufteilen des Keys in 64 Zeichen lange Zeilen
-    #formatted_key = "\n".join([clean_key[i:i + 64] for i in range(0, len(clean_key), 64)])
-    
+    pem_footer = "\n-----END PRIVATE KEY-----"   
     return pem_header + public_key_string + pem_footer
     
 
@@ -424,14 +399,11 @@ def upload_files():
         with lock:
             abort_flag = False  # Reset des Abbruch-Flags bei POST-Start
 
-        user_key_test = get_user_key_from_vault('key-easyreceivepem')  # Nutze den Namen des Geheimnisses im Key Vault
-        #user_key_test = format_key_to_pem(user_key_test)
-        with lock:
-            status_messages.append(f'User-Key: {user_key_test}')
+        user_key = get_user_key_from_vault('key-easyreceivepem')  # Nutze den Namen des Geheimnisses im Key Vault
 
-        user_key = request.files['user_key']
-        user_key_path = os.path.join(app.config['UPLOAD_FOLDER'], user_key.filename)
-        user_key.save(user_key_path)
+        #user_key = request.files['user_key']
+        #user_key_path = os.path.join(app.config['UPLOAD_FOLDER'], user_key.filename)
+        #user_key.save(user_key_path)
 
         # Überprüfe, ob die Datei im Request vorhanden ist
         if 'file' not in request.files:
@@ -471,14 +443,11 @@ def upload_files():
                 if not all([sharepoint_site_url, list_name, user_key]):
                     status_messages.append('Bitte fülle alle Felder aus.')
                     return redirect(request.url)
-                
-                access_token=get_access_token()
-
 
                 @copy_current_request_context
                 def email_processing_thread_with_context():
                     #email_processing_thread(file_paths, sharepoint_site_url, list_name, access_token, user_key_path)
-                    email_processing_thread(file_paths, sharepoint_site_url, list_name, user_key_test, user_key_path)
+                    email_processing_thread(file_paths, sharepoint_site_url, list_name, user_key)
 
                 # Starte den E-Mail-Verarbeitungs-Thread mit Request-Kontext
                 threading.Thread(target=email_processing_thread_with_context).start()
