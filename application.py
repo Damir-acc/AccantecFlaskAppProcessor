@@ -342,6 +342,10 @@ def process_and_copy_messages(file_path, sharepoint_site_url, list_name, user_ke
 def email_processing_thread(file_paths, sharepoint_site_url, list_name, user_key):
     global progress, progress_percentage, lock, abort_flag, emails_completed, status_messages
     total_files = len(file_paths)
+    with lock:
+        progress = 0
+        progress_percentage = 0
+        status_messages= []
 
     for file_path in file_paths:
         # Abbruchprüfung
@@ -360,7 +364,8 @@ def email_processing_thread(file_paths, sharepoint_site_url, list_name, user_key
     clear_upload_folder()
 
     # Kopieren abgeschlossen oder abgebrochen
-    emails_completed = True
+    with lock:
+        emails_completed = True
 
 def clear_upload_folder():
     for filename in os.listdir(app.config['UPLOAD_FOLDER']):
@@ -392,8 +397,6 @@ def upload_files():
             status_messages= []
             abort_flag = False  # Reset des Abbruch-Flags
             emails_completed = False
-
-        clear_upload_folder()
 
     if request.method == 'POST':
         # Setze abort_flag zurück, bevor ein neuer Upload-Prozess gestartet wird
